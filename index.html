@@ -2,1786 +2,659 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>BLOX FRUITS — CINEMATIC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Blox Fruits - HTML Clone</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { overflow: hidden; font-family: 'Trebuchet MS', sans-serif; background: #000; cursor: crosshair; }
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; font-family: 'Arial', sans-serif; }
+  body { overflow: hidden; background: #000; width: 100vw; height: 100vh; touch-action: none; }
   canvas { display: block; }
 
-  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
-
-  /* Stats */
-  #stats {
-    position: absolute; top: 20px; left: 20px;
-    background: linear-gradient(135deg, rgba(10,10,20,0.9), rgba(30,10,40,0.85));
-    border: 2px solid rgba(255,100,0,0.4);
-    border-radius: 8px;
-    padding: 14px 20px; color: white; min-width: 240px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,100,0,0.05);
-    backdrop-filter: blur(10px);
+  /* ===== PANTALLA DE SELECCIÓN (PICK A SIDE) ===== */
+  #menu-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: url('https://images.unsplash.com/photo-1542841791-1925c7e5d3d2?q=80&w=2070&auto=format&fit=crop') center/cover;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
-  #stats::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, #ff6b00, transparent);
+  #menu-screen::before {
+    content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4);
   }
-  #stats .row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 13px; letter-spacing: 1px; }
-  #stats .label { color: #888; text-transform: uppercase; }
-  #stats .value { color: #ffaa00; font-weight: bold; font-family: monospace; }
-
-  /* HP bar */
-  #hp-bar-container {
-    position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-    width: 400px; max-width: 60vw;
-  }
-  #hp-bar-bg {
-    height: 28px; background: rgba(0,0,0,0.9);
-    border: 2px solid rgba(255,255,255,0.15);
-    border-radius: 14px; overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9);
-    position: relative;
-  }
-  #hp-bar-fill {
-    height: 100%; width: 100%;
-    background: linear-gradient(90deg, #ff0044, #ff4444, #ff8844);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 20px rgba(255,68,68,0.6);
-    position: relative;
-  }
-  #hp-bar-fill::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
-  }
-  #hp-bar-text {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    color: white; font-size: 13px; font-weight: bold;
-    text-shadow: 0 2px 4px #000; letter-spacing: 2px;
-  }
-
-  /* Level */
-  #level-badge {
-    position: absolute; top: 20px; right: 20px;
-    background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid #fff; border-radius: 12px;
-    padding: 10px 24px; color: white; text-align: center;
-    box-shadow: 0 4px 0 #4a0018, 0 8px 30px rgba(255,100,0,0.6);
-    transform: rotate(-2deg);
-  }
-  #level-badge .num { font-size: 32px; font-weight: 900; line-height: 1; text-shadow: 2px 2px 0 #4a0018; }
-  #level-badge .txt { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
-
-  /* XP */
-  #xp-bar-container {
-    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-    width: 500px; max-width: 70vw;
-  }
-  #xp-bar-bg {
-    height: 14px; background: rgba(0,0,0,0.9);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 7px; overflow: hidden;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
-  }
-  #xp-bar-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, #00ff88, #00ccff, #0088ff);
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 15px rgba(0,255,136,0.8);
-  }
-  #xp-bar-text {
-    text-align: center; color: white; font-size: 12px;
-    margin-top: 6px; text-shadow: 0 2px 6px #000; letter-spacing: 1px;
-  }
-
-  /* Fruit slot */
-  #fruit-slot {
-    position: absolute; bottom: 30px; right: 30px;
-    width: 90px; height: 90px;
-    background: radial-gradient(circle, rgba(255,68,0,0.2), rgba(0,0,0,0.9));
-    border: 3px solid #ff4400; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 48px;
-    box-shadow: 0 0 30px rgba(255,68,0,0.6), inset 0 0 20px rgba(255,68,0,0.3);
-    transition: all 0.3s;
-  }
-  #fruit-slot.empty { border-color: #333; opacity: 0.4; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
-  #fruit-slot .cooldown {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.85);
-    display: none; align-items: center; justify-content: center;
-    color: white; font-size: 26px; font-weight: 900; border-radius: 50%;
-    text-shadow: 0 0 10px #fff;
-  }
-  #fruit-slot .cooldown.active { display: flex; }
-
-  /* Kill feed */
-  #kill-feed { position: absolute; top: 110px; right: 20px; width: 280px; }
-  .kill-msg {
-    background: linear-gradient(90deg, rgba(255,68,68,0.3), rgba(0,0,0,0.85));
-    border-left: 4px solid #ff0044;
-    padding: 8px 14px; margin-bottom: 6px; border-radius: 6px;
-    font-size: 13px; color: white; font-weight: bold;
+  .menu-title {
+    position: relative; z-index: 2;
+    background: rgba(0,0,0,0.7); color: white;
+    padding: 10px 40px; font-size: 24px; font-weight: bold;
+    border-radius: 8px; margin-bottom: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    animation: killSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .kill-msg.xp {
-    background: linear-gradient(90deg, rgba(0,255,136,0.3), rgba(0,0,0,0.85));
-    border-left-color: #00ff88;
+  .cards-container {
+    position: relative; z-index: 2;
+    display: flex; gap: 20px; align-items: center; justify-content: center;
+    width: 90%; max-width: 900px;
   }
-  @keyframes killSlide {
-    from { opacity: 0; transform: translateX(50px) scale(0.9); }
-    to { opacity: 1; transform: translateX(0) scale(1); }
+  .card {
+    width: 45%; max-width: 350px; aspect-ratio: 3/4;
+    border: 4px solid; border-radius: 12px;
+    display: flex; flex-direction: column; overflow: hidden;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .card:hover { transform: scale(1.05); }
+  .card-pirate { border-color: #ff3333; background: linear-gradient(to bottom, #7a0000, #300000); box-shadow: 0 0 30px rgba(255,0,0,0.5); }
+  .card-marine { border-color: #3388ff; background: linear-gradient(to bottom, #001a7a, #000033); box-shadow: 0 0 30px rgba(0,100,255,0.5); }
+  
+  .card-img {
+    width: 100%; height: 55%;
+    background-size: cover; background-position: center;
+  }
+  .card-pirate .card-img { background-image: url('https://tr.rbxcdn.com/180DAY-7b96ff082e900c48d01017011316fdb9/420/420/Image/Png/noFilter'); }
+  .card-marine .card-img { background-image: url('https://tr.rbxcdn.com/180DAY-8f5b75f9c0e6c2f3a5c9455fb0b4f1a1/420/420/Image/Png/noFilter'); }
+  
+  .card-title {
+    font-size: 36px; font-weight: 900; color: white;
+    text-align: center; text-transform: uppercase;
+    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+    margin-top: -20px; z-index: 3;
+    background: rgba(0,0,0,0.5); padding: 5px 0;
+  }
+  .card-stats {
+    background: rgba(0,0,0,0.8); color: white;
+    padding: 10px; text-align: center;
+    font-size: 14px; font-weight: bold;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+  }
+  .card-desc {
+    background: rgba(0,0,0,0.6); color: white;
+    padding: 15px; text-align: center;
+    font-size: 12px; line-height: 1.4;
+    flex: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .vs-text {
+    font-size: 40px; font-weight: 900; color: white;
+    text-shadow: 2px 2px 0 #000; font-style: italic;
   }
 
-  /* Combo counter */
-  #combo {
-    position: absolute; top: 45%; right: 40px;
-    color: #ff4400; font-size: 64px; font-weight: 900;
-    text-shadow: 0 0 30px rgba(255,68,0,0.9), 3px 3px 0 #4a0018;
-    opacity: 0; transition: opacity 0.3s, transform 0.3s;
-    font-style: italic;
+  /* ===== HUD DE JUEGO ===== */
+  #game-ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: none; }
+  
+  /* Barra superior */
+  .top-bar {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between; align-items: flex-start;
   }
-  #combo.active { opacity: 1; }
-  #combo.pulse { transform: scale(1.3); }
-  #combo-label {
-    position: absolute; top: calc(45% + 70px); right: 40px;
-    color: #fff; font-size: 14px; font-weight: bold;
-    text-shadow: 0 0 10px #ff4400; letter-spacing: 4px;
-    opacity: 0; transition: opacity 0.3s;
+  .menu-btn {
+    background: #ffcc00; color: #000; font-weight: bold;
+    border: 2px solid #fff; border-radius: 5px;
+    padding: 5px 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
   }
-  #combo-label.active { opacity: 1; }
+  .hud-buttons { display: flex; gap: 10px; }
+  .hud-buttons div {
+    width: 40px; height: 40px; background: rgba(0,0,0,0.5);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; border: 1px solid rgba(255,255,255,0.3);
+  }
 
-  /* Hitmarker */
-  #hitmarker {
+  /* Info jugador izquierda */
+  .player-info {
+    position: absolute; top: 60px; left: 15px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+  }
+  .level-txt {
+    color: white; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000;
+  }
+  .xp-bar-bg {
+    width: 150px; height: 12px; background: #222; border: 2px solid #000; border-radius: 6px;
+    position: relative; overflow: hidden;
+  }
+  .xp-bar-fill {
+    width: 60%; height: 100%; background: linear-gradient(90deg, #a000ff, #ff00ff);
+  }
+  .xp-text {
+    position: absolute; top: -2px; left: 0; width: 100%; text-align: center;
+    font-size: 9px; font-weight: bold; color: white; text-shadow: 1px 1px 0 #000;
+  }
+  .money-txt {
+    color: #00ff00; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 0 #000;
+  }
+
+  /* Barras Salud / Energía */
+  .stats-container {
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; width: 80%; max-width: 500px;
+  }
+  .stat-bar {
+    flex: 1; height: 30px; border: 2px solid #000; border-radius: 4px;
+    position: relative; overflow: hidden; box-shadow: 0 3px 0 #000;
+  }
+  .health-bar { background: #3a3a3a; }
+  .health-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ff55, #00aa00); transition: width 0.2s; }
+  .energy-bar { background: #3a3a3a; }
+  .energy-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ffff, #0088ff); transition: width 0.2s; }
+  
+  .stat-text {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 10px; color: white; font-size: 12px; font-weight: bold;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .stat-label { text-transform: capitalize; }
+
+  /* Barra de Habilidades */
+  .skills-container {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 5px;
+  }
+  .skill-slot {
+    width: 50px; height: 50px; background: #2a2a2a;
+    border: 2px solid #555; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; box-shadow: 0 3px 0 #000;
+  }
+  .skill-slot.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 3px 0 #000; }
+  .skill-icon { font-size: 28px; }
+  
+  /* Controles Táctiles */
+  .joystick-area {
+    position: absolute; bottom: 20px; left: 20px;
+    width: 130px; height: 130px;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; pointer-events: auto;
+  }
+  .joystick-knob {
     position: absolute; top: 50%; left: 50%;
-    width: 40px; height: 40px; margin: -20px 0 0 -20px;
-    opacity: 0; pointer-events: none;
+    width: 50px; height: 50px; margin: -25px 0 0 -25px;
+    background: rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
   }
-  #hitmarker.active { animation: hitFlash 0.2s ease-out; }
-  @keyframes hitFlash {
-    0% { opacity: 1; transform: scale(1.4); }
-    100% { opacity: 0; transform: scale(0.8); }
+  .jump-btn {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.2);
+    border: 3px solid rgba(255,255,255,0.4);
+    border-radius: 50%; pointer-events: auto;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 40px; text-shadow: 0 2px 5px #000;
   }
-  #hitmarker::before, #hitmarker::after {
-    content: ''; position: absolute; background: #fff;
-    box-shadow: 0 0 8px #ff4400;
+  
+  /* Notificación */
+  #notification {
+    position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.7); color: white; padding: 8px 20px;
+    border-radius: 20px; font-size: 18px; font-weight: bold;
+    opacity: 0; transition: opacity 0.5s; text-shadow: 1px 1px 0 #000;
   }
-  #hitmarker::before { width: 4px; height: 16px; left: 18px; top: 0; transform: rotate(45deg); }
-  #hitmarker::after { width: 4px; height: 16px; left: 18px; bottom: 0; transform: rotate(-45deg); }
-
-  /* Crosshair */
-  #crosshair {
-    position: absolute; top: 50%; left: 50%;
-    width: 24px; height: 24px; margin: -12px 0 0 -12px;
-    pointer-events: none;
-  }
-  #crosshair::before {
-    content: ''; position: absolute; inset: 0;
-    border: 2px solid rgba(255,255,255,0.7); border-radius: 50%;
-    box-shadow: 0 0 6px rgba(0,0,0,0.9);
-  }
-  #crosshair::after {
-    content: ''; position: absolute;
-    top: 50%; left: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
-    background: #ff4400; border-radius: 50%;
-    box-shadow: 0 0 8px #ff4400;
-  }
-
-  /* Damage overlay */
-  #damage-overlay {
-    position: fixed; inset: 0; pointer-events: none; z-index: 50;
-    background: radial-gradient(circle, transparent 40%, rgba(255,0,0,0.7));
-    opacity: 0; transition: opacity 0.1s;
-  }
-  #damage-overlay.active { opacity: 1; }
-
-  /* Slow motion effect */
-  #slowmo {
-    position: fixed; inset: 0; pointer-events: none; z-index: 45;
-    background: radial-gradient(circle, rgba(0,100,255,0.1), rgba(0,0,50,0.5));
-    opacity: 0; transition: opacity 0.3s;
-  }
-  #slowmo.active { opacity: 1; }
-
-  /* Vignette */
-  #vignette {
-    position: fixed; inset: 0; pointer-events: none; z-index: 40;
-    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85));
-  }
-
-  /* Overlays */
-  #overlay {
-    position: fixed; inset: 0;
-    background: radial-gradient(ellipse at center, #0a0a20 0%, #000 100%);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 100; color: white; text-align: center;
-    transition: opacity 0.8s;
-  }
-  #overlay.fade { opacity: 0; pointer-events: none; }
-  #overlay h1 {
-    font-size: clamp(40px, 8vw, 96px);
-    font-weight: 900; letter-spacing: 8px;
-    background: linear-gradient(135deg, #ffaa00, #ff4400, #ff0044);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 40px rgba(255,100,0,0.5));
-    margin-bottom: 5px;
-    transform: perspective(500px) rotateX(5deg);
-  }
-  #overlay .sub {
-    font-size: 14px; letter-spacing: 12px; color: #667;
-    text-transform: uppercase; margin-bottom: 50px;
-  }
-  #overlay .controls-box {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 14px 50px; padding: 30px 60px;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(255,100,0,0.3);
-    border-radius: 15px; margin-bottom: 40px;
-    box-shadow: 0 0 40px rgba(255,100,0,0.1), inset 0 0 30px rgba(255,100,0,0.05);
-  }
-  #overlay .ctrl { display: flex; align-items: center; gap: 15px; font-size: 14px; color: #aab; }
-  #overlay .key {
-    display: inline-block; min-width: 60px; padding: 8px 14px;
-    background: linear-gradient(180deg, #333, #111);
-    border: 2px solid #444; border-radius: 6px;
-    font-family: monospace; font-weight: bold; font-size: 13px;
-    color: #ffaa00; box-shadow: 0 3px 0 #000;
-  }
-  #overlay button {
-    padding: 20px 70px; font-size: 20px; font-weight: 900;
-    letter-spacing: 5px;
-    background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid #fff; border-radius: 12px; color: white;
-    cursor: pointer; text-transform: uppercase; font-family: inherit;
-    box-shadow: 0 8px 0 #4a0018, 0 12px 40px rgba(255,100,0,0.6);
-    transition: transform 0.1s, box-shadow 0.1s;
-  }
-  #overlay button:hover { transform: translateY(-3px); box-shadow: 0 11px 0 #4a0018, 0 15px 50px rgba(255,100,0,0.8); }
-  #overlay button:active { transform: translateY(4px); box-shadow: 0 4px 0 #4a0018; }
-
-  #gameover {
-    position: fixed; inset: 0;
-    background: radial-gradient(ellipse at center, rgba(50,0,0,0.95), rgba(0,0,0,0.98));
-    display: none; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 200; color: white; text-align: center;
-  }
-  #gameover.active { display: flex; animation: fadeIn 0.5s; }
-  #gameover h1 {
-    font-size: 80px; color: #ff0044;
-    text-shadow: 0 0 40px rgba(255,0,68,0.9), 4px 4px 0 #4a0018;
-    margin-bottom: 20px; letter-spacing: 8px;
-  }
-  #gameover .stats {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 15px 40px; padding: 25px 50px;
-    border: 1px solid rgba(255,68,68,0.3);
-    border-radius: 12px; margin: 20px 0;
-    background: rgba(0,0,0,0.5);
-  }
-  #gameover .stat-label { text-align: left; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
-  #gameover .stat-val { text-align: right; color: #ffaa00; font-size: 24px; font-weight: 900; }
-  #gameover button {
-    margin-top: 30px; padding: 18px 60px; font-size: 18px;
-    font-weight: 900; letter-spacing: 3px;
-    background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid white; border-radius: 10px;
-    color: white; cursor: pointer;
-    box-shadow: 0 6px 0 #4a0018;
-  }
-
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  #loading {
-    position: fixed; inset: 0; background: #000;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    z-index: 300; color: #ffaa00;
-    transition: opacity 0.5s;
-  }
-  #loading .spinner {
-    width: 50px; height: 50px;
-    border: 3px solid rgba(255,170,0,0.2);
-    border-top-color: #ffaa00; border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 20px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="spinner"></div>
-  <div>CARGANDO MOTOR 3D...</div>
+<!-- PANTALLA DE SELECCIÓN -->
+<div id="menu-screen">
+  <div class="menu-title">Pick A Side!</div>
+  <div class="cards-container">
+    <!-- Tarjeta Pirata -->
+    <div class="card card-pirate" onclick="startGame('Piratas')">
+      <div class="card-img"></div>
+      <div class="card-title">PIRATAS</div>
+      <div class="card-stats">Bounty: $2,503,366</div>
+      <div class="card-desc">
+        Defy the marines and battle pirates!<br>
+        Create your own pirate crew!<br>
+        Get a high player bounty!
+      </div>
+    </div>
+    
+    <div class="vs-text">VS</div>
+    
+    <!-- Tarjeta Marina -->
+    <div class="card card-marine" onclick="startGame('Marinas')">
+      <div class="card-img"></div>
+      <div class="card-title">MARINAS</div>
+      <div class="card-stats">Honor: $2,510,531</div>
+      <div class="card-desc">
+        Team up on pirates!<br>
+        Faster, cheaper ships!<br>
+        Claim bounties!
+      </div>
+    </div>
+  </div>
 </div>
 
-<div id="hud">
-  <div id="stats">
-    <div class="row"><span class="label">Melee</span><span class="value" id="stat-melee">1.0</span></div>
-    <div class="row"><span class="label">Defense</span><span class="value" id="stat-defense">1.0</span></div>
-    <div class="row"><span class="label">Fruit</span><span class="value" id="stat-fruit">1.0</span></div>
-    <div class="row"><span class="label">Kills</span><span class="value" id="stat-kills">0</span></div>
-  </div>
-
-  <div id="hp-bar-container">
-    <div id="hp-bar-bg">
-      <div id="hp-bar-fill"></div>
-      <div id="hp-bar-text">100 / 100</div>
+<!-- HUD DE JUEGO -->
+<div id="game-ui">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="menu-btn">Menú</div>
+    <div class="hud-buttons">
+      <div>⚙️</div>
+      <div>💬</div>
     </div>
   </div>
 
-  <div id="level-badge">
-    <div class="num" id="level-num">1</div>
-    <div class="txt">NIVEL</div>
+  <!-- Info Jugador -->
+  <div class="player-info">
+    <div class="level-txt">Lv. 2752</div>
+    <div class="xp-bar-bg">
+      <div class="xp-bar-fill"></div>
+      <div class="xp-text">114,912 / 163,012,763</div>
+    </div>
+    <div class="money-txt">$ 367,682</div>
   </div>
 
-  <div id="kill-feed"></div>
+  <!-- Notificación central -->
+  <div id="notification">Unido al equipo de &lt;Piratas&gt;.</div>
 
-  <div id="combo">0</div>
-  <div id="combo-label">COMBO</div>
-
-  <div id="hitmarker"></div>
-
-  <div id="xp-bar-container">
-    <div id="xp-bar-bg"><div id="xp-bar-fill"></div></div>
-    <div id="xp-bar-text">0 / 100 XP</div>
+  <!-- Barras de Salud -->
+  <div class="stats-container">
+    <div class="stat-bar health-bar">
+      <div class="health-fill" id="health-fill"></div>
+      <div class="stat-text">
+        <span class="stat-label">Salud</span>
+        <span id="health-val">13955/13955</span>
+      </div>
+    </div>
+    <div class="stat-bar energy-bar">
+      <div class="energy-fill" id="energy-fill"></div>
+      <div class="stat-text">
+        <span class="stat-label">Energy</span>
+        <span id="energy-val">13955/13955</span>
+      </div>
+    </div>
   </div>
 
-  <div id="fruit-slot" class="empty">
-    <span id="fruit-icon">🍎</span>
-    <div class="cooldown" id="fruit-cooldown"></div>
+  <!-- Habilidades -->
+  <div class="skills-container">
+    <div class="skill-slot active"><div class="skill-icon" style="color:#00ffff;">✋</div></div>
+    <div class="skill-slot"><div class="skill-icon" style="color:#ff00ff; background:#000; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">☠️</div></div>
+    <div class="skill-slot"><div class="skill-icon" style="transform: rotate(-45deg);">🪄</div></div>
+    <div class="skill-slot"><div class="skill-icon">🪝</div></div>
+    <div class="skill-slot"><div class="skill-icon">➕</div></div>
   </div>
 
-  <div id="crosshair"></div>
+  <!-- Joystick y Salto -->
+  <div class="joystick-area" id="joystick">
+    <div class="joystick-knob" id="knob"></div>
+  </div>
+  <div class="jump-btn" id="jump-btn">▲</div>
 </div>
 
-<div id="damage-overlay"></div>
-<div id="slowmo"></div>
-<div id="vignette"></div>
-
-<div id="overlay">
-  <h1>BLOX FRUITS</h1>
-  <div class="sub">Cinematic Edition</div>
-  <div class="controls-box">
-    <div class="ctrl"><span class="key">WASD</span> Moverse</div>
-    <div class="ctrl"><span class="key">RATÓN</span> Cámara</div>
-    <div class="ctrl"><span class="key">CLICK</span> Atacar (combo)</div>
-    <div class="ctrl"><span class="key">F</span> Fruta / Dash</div>
-    <div class="ctrl"><span class="key">ESPACIO</span> Saltar</div>
-    <div class="ctrl"><span class="key">SHIFT</span> Correr</div>
-    <div class="ctrl"><span class="key">E</span> Dash (esquiva)</div>
-    <div class="ctrl"><span class="key">Q</span> Ataque cargado</div>
-  </div>
-  <button id="start-btn">ENTRAR AL CAMPO</button>
-</div>
-
-<div id="gameover">
-  <h1>DERROTADO</h1>
-  <div class="stats">
-    <div class="stat-label">Nivel</div><div class="stat-val" id="go-level">1</div>
-    <div class="stat-label">Kills</div><div class="stat-val" id="go-kills">0</div>
-    <div class="stat-label">Combo máx.</div><div class="stat-val" id="go-combo">0</div>
-    <div class="stat-label">Tiempo</div><div class="stat-val" id="go-time">0s</div>
-  </div>
-  <button onclick="location.reload()">REINTENTAR</button>
-</div>
-
-<!-- Three.js por CDN clásico: funciona con file:// sin servidor -->
+<!-- Three.js clásico -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 
 <script>
+let scene, camera, renderer, player, clock;
+let controls = { forward: 0, right: 0 };
+let isJumping = false;
+let playerVelY = 0;
+
 function boot() {
   if (typeof THREE === 'undefined') { setTimeout(boot, 80); return; }
-  document.getElementById('loading').style.opacity = '0';
-  setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
-  initGame();
+  init3D();
 }
 boot();
 
-function initGame() {
+function init3D() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB); // Cielo azul brillante
+  scene.fog = new THREE.Fog(0x87CEEB, 30, 120);
 
-// ============================================================
-// CONFIGURACIÓN
-// ============================================================
-const CFG = {
-  gravity: 28,
-  jumpForce: 10,
-  walkSpeed: 6,
-  runSpeed: 12,
-  playerRadius: 0.5,
-  attackDamage: 25,
-  fruitDamage: 70,
-  fruitRadius: 7,
-  fruitCooldown: 6,
-  islandSize: 45,
-  dashSpeed: 22,
-  dashDuration: 0.25,
-  dashCooldown: 1.2,
-  chargedAttackDamage: 70,
-  chargedAttackTime: 1.0,
-};
+  camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 300);
+  
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
 
-const S = {
-  playing: false, level: 1, xp: 0, xpToNext: 100,
-  hp: 100, maxHp: 100, hasFruit: false, fruitCooldown: 0,
-  meleeStat: 1, defenseStat: 1, fruitStat: 1,
-  velocityY: 0, onGround: true,
-  lastAttack: 0, comboCount: 0, comboTimer: 0, maxCombo: 0,
-  killCount: 0, gameStartTime: 0,
-  isDashing: false, dashTimer: 0, dashCooldown: 0, dashDir: new THREE.Vector3(),
-  isCharging: false, chargeTimer: 0,
-  lastMouseDown: 0,
-  isDead: false,
-  hitStopTimer: 0, slowmoTimer: 0,
-};
+  // Luces
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+  scene.add(hemi);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  dirLight.position.set(20, 30, 10);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.width = 1024;
+  dirLight.shadow.mapSize.height = 1024;
+  dirLight.shadow.camera.left = -50;
+  dirLight.shadow.camera.right = 50;
+  dirLight.shadow.camera.top = 50;
+  dirLight.shadow.camera.bottom = -50;
+  scene.add(dirLight);
 
-// ============================================================
-// ESCENA
-// ============================================================
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1a2030);
-scene.fog = new THREE.FogExp2(0x1a2030, 0.015);
+  // Entorno (Ciudad estilo Blox Fruits)
+  buildEnvironment();
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
+  // Jugador (Estilo Roblox)
+  buildPlayer();
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
-document.body.appendChild(renderer.domElement);
+  // Cámara posición inicial
+  camera.position.set(0, 8, 15);
 
-// ============================================================
-// LUCES
-// ============================================================
-const hemi = new THREE.HemisphereLight(0x88bbff, 0x223344, 0.9);
-scene.add(hemi);
+  clock = new THREE.Clock();
+  animate();
 
-const sun = new THREE.DirectionalLight(0xffeedd, 2.5);
-sun.position.set(40, 60, 30);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -80;
-sun.shadow.camera.right = 80;
-sun.shadow.camera.top = 80;
-sun.shadow.camera.bottom = -80;
-sun.shadow.camera.near = 1;
-sun.shadow.camera.far = 200;
-sun.shadow.bias = -0.0005;
-scene.add(sun);
+  // Eventos
+  window.addEventListener('resize', onWindowResize);
+  setupTouchControls();
+}
 
-const amb = new THREE.AmbientLight(0x445566, 0.5);
-scene.add(amb);
+function buildEnvironment() {
+  // Suelo
+  const floorGeo = new THREE.PlaneGeometry(200, 200);
+  const floorMat = new THREE.MeshStandardMaterial({ color: 0x88cc88 }); // Hierba
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
 
-// Luz de contorno del jugador (rim light)
-const rimLight = new THREE.PointLight(0x66aaff, 2, 8, 2);
-scene.add(rimLight);
-
-// ============================================================
-// CÁMARA ACOSTADA (angled top-down)
-// ============================================================
-let camYaw = 0;
-let camPitch = 0.75;  // ACOSTADA: mira desde arriba en ángulo
-let camDist = 12;
-const camPitchMin = 0.4;
-const camPitchMax = 1.2;
-let camShake = 0;
-let camShakeTime = 0;
-let camFov = 60;
-
-// ============================================================
-// MUNDO
-// ============================================================
-// Océano
-const waterGeo = new THREE.PlaneGeometry(2000, 2000, 32, 32);
-const waterMat = new THREE.MeshStandardMaterial({
-  color: 0x1a5a8a,
-  roughness: 0.05,
-  metalness: 0.8,
-  transparent: true,
-  opacity: 0.92,
-});
-const water = new THREE.Mesh(waterGeo, waterMat);
-water.rotation.x = -Math.PI / 2;
-water.position.y = -1.5;
-water.receiveShadow = true;
-scene.add(water);
-
-// Isla de arena
-const islandGeo = new THREE.CylinderGeometry(CFG.islandSize, CFG.islandSize * 1.05, 3, 64);
-const islandMat = new THREE.MeshStandardMaterial({ color: 0xf2d896, roughness: 1 });
-const island = new THREE.Mesh(islandGeo, islandMat);
-island.position.y = -1.5;
-island.receiveShadow = true;
-scene.add(island);
-
-// Hierba central
-const grassGeo = new THREE.CylinderGeometry(CFG.islandSize * 0.7, CFG.islandSize * 0.72, 0.35, 64);
-const grassMat = new THREE.MeshStandardMaterial({ color: 0x4a9d3a, roughness: 0.95 });
-const grass = new THREE.Mesh(grassGeo, grassMat);
-grass.position.y = 0.18;
-grass.receiveShadow = true;
-scene.add(grass);
-
-// Caminos de tierra
-for (let i = 0; i < 3; i++) {
-  const path = new THREE.Mesh(
-    new THREE.RingGeometry(8 + i * 8, 10 + i * 8, 64, 1, 0, Math.PI * 2),
-    new THREE.MeshStandardMaterial({ color: 0xa08050, roughness: 1, side: THREE.DoubleSide })
-  );
+  // Caminos
+  const pathGeo = new THREE.PlaneGeometry(200, 20);
+  const pathMat = new THREE.MeshStandardMaterial({ color: 0xd4b88a }); // Tierra
+  const path = new THREE.Mesh(pathGeo, pathMat);
   path.rotation.x = -Math.PI / 2;
-  path.position.y = 0.37;
+  path.position.y = 0.01;
+  path.receiveShadow = true;
   scene.add(path);
-}
 
-// Palmeras mejoradas
-function createPalmTree(x, z) {
-  const group = new THREE.Group();
-  const segments = 8;
-  for (let i = 0; i < segments; i++) {
-    const seg = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.3 - i * 0.02, 0.35 - i * 0.02, 0.8, 6),
-      new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 1 })
-    );
-    seg.position.y = i * 0.8;
-    seg.position.x = Math.sin(i * 0.1) * 0.2;
-    seg.castShadow = true;
-    group.add(seg);
-  }
-  // Hojas
-  for (let i = 0; i < 7; i++) {
-    const leafGroup = new THREE.Group();
-    for (let j = 0; j < 4; j++) {
-      const leafSeg = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.08, 0.8 - j * 0.1),
-        new THREE.MeshStandardMaterial({ color: 0x2d7a2d, roughness: 0.8 })
-      );
-      leafSeg.position.z = j * 0.6;
-      leafSeg.castShadow = true;
-      leafGroup.add(leafSeg);
+  // Edificios de colores (estilo bloques)
+  const colors = [0xff9999, 0x99ff99, 0x9999ff, 0xffff99, 0xffcc99];
+  
+  for(let i=0; i<12; i++) {
+    const w = 5 + Math.random() * 8;
+    const h = 10 + Math.random() * 20;
+    const d = 5 + Math.random() * 8;
+    
+    // Evitar el centro donde está el jugador
+    let x = (Math.random() - 0.5) * 80;
+    let z = (Math.random() - 0.5) * 80;
+    if (Math.abs(x) < 15 && Math.abs(z) < 15) {
+      x += x > 0 ? 20 : -20;
     }
-    const angle = (i / 7) * Math.PI * 2;
-    leafGroup.position.y = 6.5;
-    leafGroup.rotation.y = angle;
-    leafGroup.rotation.x = 0.5;
-    group.add(leafGroup);
-  }
-  group.position.set(x, 0.3, z);
-  group.rotation.y = Math.random() * Math.PI * 2;
-  group.scale.setScalar(0.9 + Math.random() * 0.3);
-  scene.add(group);
-}
 
-for (let i = 0; i < 20; i++) {
-  const a = Math.random() * Math.PI * 2;
-  const r = 12 + Math.random() * 25;
-  createPalmTree(Math.cos(a) * r, Math.sin(a) * r);
-}
-
-// Rocas
-for (let i = 0; i < 15; i++) {
-  const size = 0.6 + Math.random() * 1.5;
-  const rock = new THREE.Mesh(
-    new THREE.DodecahedronGeometry(size, 0),
-    new THREE.MeshStandardMaterial({ color: 0x666677, roughness: 1, flatShading: true })
-  );
-  const a = Math.random() * Math.PI * 2;
-  const r = 6 + Math.random() * 30;
-  rock.position.set(Math.cos(a) * r, size * 0.5 + 0.3, Math.sin(a) * r);
-  rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-  rock.castShadow = true;
-  rock.receiveShadow = true;
-  scene.add(rock);
-}
-
-// ============================================================
-// PERSONAJE (más detallado)
-// ============================================================
-const player = new THREE.Group();
-scene.add(player);
-
-// Jerarquía esquelética para animaciones
-const skeleton = {
-  root: player,
-  torso: new THREE.Group(),
-  head: new THREE.Group(),
-  armL: new THREE.Group(),
-  armR: new THREE.Group(),
-  legL: new THREE.Group(),
-  legR: new THREE.Group(),
-  weapon: new THREE.Group(),
-};
-
-skeleton.torso.position.y = 2.2;
-player.add(skeleton.torso);
-
-skeleton.head.position.y = 1.1;
-skeleton.torso.add(skeleton.head);
-
-skeleton.armL.position.set(-1.05, 0.5, 0);
-skeleton.torso.add(skeleton.armL);
-
-skeleton.armR.position.set(1.05, 0.5, 0);
-skeleton.torso.add(skeleton.armR);
-
-skeleton.legL.position.set(-0.35, -1.0, 0);
-player.add(skeleton.legL);
-
-skeleton.legR.position.set(0.35, -1.0, 0);
-player.add(skeleton.legR);
-
-function makePart(w, h, d, color, emissive = 0x000000) {
-  const m = new THREE.Mesh(
-    new THREE.BoxGeometry(w, h, d),
-    new THREE.MeshStandardMaterial({
-      color, roughness: 0.5, metalness: 0.15,
-      emissive, emissiveIntensity: 0.2,
-    })
-  );
-  m.castShadow = true;
-  m.receiveShadow = true;
-  return m;
-}
-
-// Torso
-const torsoMesh = makePart(1.5, 1.8, 0.8, 0x3a5fcd);
-torsoMesh.position.y = 0;
-skeleton.torso.add(torsoMesh);
-
-// Pecho detalle
-const chestDetail = makePart(0.6, 0.3, 0.05, 0xffaa00);
-chestDetail.position.set(0, 0.3, 0.41);
-skeleton.torso.add(chestDetail);
-
-// Cabeza
-const headMesh = makePart(1.3, 1.3, 1.3, 0xffcc99);
-skeleton.head.add(headMesh);
-
-// Pelo
-const hair = makePart(1.35, 0.5, 1.35, 0x2a1a0a);
-hair.position.y = 0.55;
-skeleton.head.add(hair);
-
-// Ojos
-const eyeGeo = new THREE.BoxGeometry(0.18, 0.22, 0.05);
-const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x1111ff, emissiveIntensity: 0.3 });
-const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-eyeL.position.set(-0.28, 0.05, 0.66);
-skeleton.head.add(eyeL);
-const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
-eyeR.position.set(0.28, 0.05, 0.66);
-skeleton.head.add(eyeR);
-
-// Brazos
-const armLMesh = makePart(0.55, 1.7, 0.55, 0xffcc99);
-armLMesh.position.y = -0.85;
-skeleton.armL.add(armLMesh);
-
-const armRMesh = makePart(0.55, 1.7, 0.55, 0xffcc99);
-armRMesh.position.y = -0.85;
-skeleton.armR.add(armRMesh);
-
-// Piernas
-const legLMesh = makePart(0.6, 1.7, 0.6, 0x1e3a8a);
-legLMesh.position.y = -0.85;
-skeleton.legL.add(legLMesh);
-
-const legRMesh = makePart(0.6, 1.7, 0.6, 0x1e3a8a);
-legRMesh.position.y = -0.85;
-skeleton.legR.add(legRMesh);
-
-// Espada
-const swordBlade = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 1.8, 0.15),
-  new THREE.MeshStandardMaterial({ color: 0xddeeff, metalness: 0.95, roughness: 0.1, emissive: 0x334466, emissiveIntensity: 0.3 })
-);
-swordBlade.position.y = 1.2;
-swordBlade.castShadow = true;
-const swordGuard = new THREE.Mesh(
-  new THREE.BoxGeometry(0.6, 0.12, 0.15),
-  new THREE.MeshStandardMaterial({ color: 0xffaa00, metalness: 0.8, roughness: 0.3 })
-);
-const swordHandle = new THREE.Mesh(
-  new THREE.BoxGeometry(0.15, 0.4, 0.15),
-  new THREE.MeshStandardMaterial({ color: 0x4a1a0a })
-);
-swordHandle.position.y = -0.2;
-skeleton.weapon.add(swordBlade);
-skeleton.weapon.add(swordGuard);
-skeleton.weapon.add(swordHandle);
-skeleton.weapon.position.set(0, -1.6, 0.2);
-skeleton.weapon.rotation.x = 0.3;
-skeleton.armR.add(skeleton.weapon);
-
-player.position.set(0, 0.3, 0);
-
-// ============================================================
-// PARTÍCULAS GPU (para dash y explosiones)
-// ============================================================
-const MAX_PARTICLES = 500;
-const particleGeo = new THREE.BufferGeometry();
-const particlePositions = new Float32Array(MAX_PARTICLES * 3);
-const particleColors = new Float32Array(MAX_PARTICLES * 3);
-const particleSizes = new Float32Array(MAX_PARTICLES);
-particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-
-const particleMat = new THREE.PointsMaterial({
-  size: 0.3,
-  vertexColors: true,
-  transparent: true,
-  opacity: 0.9,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-  sizeAttenuation: true,
-});
-
-const particleSystem = new THREE.Points(particleGeo, particleMat);
-scene.add(particleSystem);
-
-const particles = [];
-for (let i = 0; i < MAX_PARTICLES; i++) {
-  particles.push({ pos: new THREE.Vector3(), vel: new THREE.Vector3(), life: 0, maxLife: 1, color: new THREE.Color(), size: 0 });
-}
-let particleIndex = 0;
-
-function spawnParticle(pos, vel, color, size = 0.3, life = 1) {
-  const p = particles[particleIndex];
-  p.pos.copy(pos);
-  p.vel.copy(vel);
-  p.life = life;
-  p.maxLife = life;
-  p.color.set(color);
-  p.size = size;
-  particleIndex = (particleIndex + 1) % MAX_PARTICLES;
-}
-
-function updateParticles(dt) {
-  for (let i = 0; i < MAX_PARTICLES; i++) {
-    const p = particles[i];
-    if (p.life > 0) {
-      p.life -= dt;
-      p.pos.add(p.vel.clone().multiplyScalar(dt));
-      p.vel.y -= 8 * dt;
-      p.vel.multiplyScalar(0.97);
-      particlePositions[i * 3] = p.pos.x;
-      particlePositions[i * 3 + 1] = p.pos.y;
-      particlePositions[i * 3 + 2] = p.pos.z;
-      particleColors[i * 3] = p.color.r * (p.life / p.maxLife);
-      particleColors[i * 3 + 1] = p.color.g * (p.life / p.maxLife);
-      particleColors[i * 3 + 2] = p.color.b * (p.life / p.maxLife);
-      particleSizes[i] = p.size * (p.life / p.maxLife);
-    } else {
-      particlePositions[i * 3 + 1] = -1000;
-    }
-  }
-  particleGeo.attributes.position.needsUpdate = true;
-  particleGeo.attributes.color.needsUpdate = true;
-  particleGeo.attributes.size.needsUpdate = true;
-}
-
-// ============================================================
-// ENEMIGOS (con más detalle y animaciones)
-// ============================================================
-const enemies = [];
-
-function createEnemy(x, z, level = 1) {
-  const group = new THREE.Group();
-
-  const skel = {
-    root: group,
-    torso: new THREE.Group(),
-    head: new THREE.Group(),
-    armL: new THREE.Group(),
-    armR: new THREE.Group(),
-    legL: new THREE.Group(),
-    legR: new THREE.Group(),
-  };
-
-  skel.torso.position.y = 2.2;
-  group.add(skel.torso);
-
-  skel.head.position.y = 1.1;
-  skel.torso.add(skel.head);
-
-  skel.armL.position.set(-1.05, 0.5, 0);
-  skel.torso.add(skel.armL);
-
-  skel.armR.position.set(1.05, 0.5, 0);
-  skel.torso.add(skel.armR);
-
-  skel.legL.position.set(-0.35, -1.0, 0);
-  group.add(skel.legL);
-
-  skel.legR.position.set(0.35, -1.0, 0);
-  group.add(skel.legR);
-
-  const bodyColor = 0x8b0000;
-  const skinColor = 0xddaa88;
-
-  const torso = makePart(1.4, 1.7, 0.75, bodyColor);
-  skel.torso.add(torso);
-
-  const headMesh = makePart(1.2, 1.2, 1.2, skinColor);
-  skel.head.add(headMesh);
-
-  // Bandana pirata
-  const bandana = makePart(1.25, 0.4, 1.25, 0xff0000);
-  bandana.position.y = 0.5;
-  skel.head.add(bandana);
-
-  // Ojos rojos
-  const eyeGeo = new THREE.BoxGeometry(0.15, 0.15, 0.05);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-  const e1 = new THREE.Mesh(eyeGeo, eyeMat); e1.position.set(-0.25, 0, 0.61); skel.head.add(e1);
-  const e2 = new THREE.Mesh(eyeGeo, eyeMat); e2.position.set(0.25, 0, 0.61); skel.head.add(e2);
-
-  const aL = makePart(0.5, 1.6, 0.5, skinColor);
-  aL.position.y = -0.8;
-  skel.armL.add(aL);
-
-  const aR = makePart(0.5, 1.6, 0.5, skinColor);
-  aR.position.y = -0.8;
-  skel.armR.add(aR);
-
-  const lL = makePart(0.55, 1.6, 0.55, 0x222222);
-  lL.position.y = -0.8;
-  skel.legL.add(lL);
-
-  const lR = makePart(0.55, 1.6, 0.55, 0x222222);
-  lR.position.y = -0.8;
-  skel.legR.add(lR);
-
-  // Barra de vida 3D
-  const hpBg = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.6, 0.18),
-    new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
-  );
-  hpBg.position.y = 4.6;
-  group.add(hpBg);
-  const hpFill = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.6, 0.18),
-    new THREE.MeshBasicMaterial({ color: 0xff2222, side: THREE.DoubleSide })
-  );
-  hpFill.position.y = 4.6;
-  hpFill.position.z = 0.01;
-  group.add(hpFill);
-
-  group.position.set(x, 0.3, z);
-
-  const enemy = {
-    mesh: group,
-    skel,
-    hp: 60 + level * 20,
-    maxHp: 60 + level * 20,
-    speed: 2 + Math.random() * 1.5,
-    xpValue: 25 + level * 10,
-    hpFill,
-    attackCooldown: 0,
-    alive: true,
-    deathTimer: 0,
-    animPhase: Math.random() * Math.PI * 2,
-    walkCycle: 0,
-    hitFlash: 0,
-    knockback: new THREE.Vector3(),
-  };
-
-  group.userData.enemy = enemy;
-  scene.add(group);
-  enemies.push(enemy);
-  return enemy;
-}
-
-for (let i = 0; i < 5; i++) {
-  const a = Math.random() * Math.PI * 2;
-  const r = 15 + Math.random() * 20;
-  createEnemy(Math.cos(a) * r, Math.sin(a) * r);
-}
-
-// ============================================================
-// FRUTA DEL DIABLO
-// ============================================================
-const fruit = new THREE.Group();
-const fruitBody = new THREE.Mesh(
-  new THREE.IcosahedronGeometry(0.7, 1),
-  new THREE.MeshStandardMaterial({
-    color: 0xff2200,
-    emissive: 0xff6600,
-    emissiveIntensity: 2,
-    roughness: 0.2,
-    metalness: 0.4,
-    flatShading: true,
-  })
-);
-fruit.add(fruitBody);
-
-for (let i = 0; i < 10; i++) {
-  const stripe = new THREE.Mesh(
-    new THREE.TorusGeometry(0.7, 0.06, 6, 16, Math.PI),
-    new THREE.MeshStandardMaterial({ color: 0x110000, emissive: 0xff2200, emissiveIntensity: 1 })
-  );
-  stripe.rotation.x = Math.PI / 2;
-  stripe.rotation.z = (i / 10) * Math.PI * 2;
-  stripe.position.y = -0.5 + i * 0.1;
-  fruit.add(stripe);
-}
-
-fruit.position.set(10, 1.3, 10);
-scene.add(fruit);
-
-const fruitLight = new THREE.PointLight(0xff4400, 3, 10, 2);
-fruitLight.position.copy(fruit.position);
-scene.add(fruitLight);
-
-// ============================================================
-// FIREBALLS
-// ============================================================
-const fireballs = [];
-
-function spawnFireball() {
-  if (!S.hasFruit || S.fruitCooldown > 0) return;
-
-  const ball = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.5, 1),
-    new THREE.MeshStandardMaterial({
-      color: 0xff4400, emissive: 0xffaa00, emissiveIntensity: 4,
-      transparent: true, opacity: 0.95, flatShading: true,
-    })
-  );
-
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  ball.position.copy(player.position).add(new THREE.Vector3(0, 2.5, 0));
-  ball.position.add(dir.clone().multiplyScalar(2));
-
-  const light = new THREE.PointLight(0xff6600, 5, 15, 2);
-  light.position.copy(ball.position);
-
-  scene.add(light);
-  scene.add(ball);
-
-  fireballs.push({
-    mesh: ball, light,
-    velocity: dir.clone().multiplyScalar(30),
-    life: 3,
-  });
-
-  S.fruitCooldown = CFG.fruitCooldown;
-  addCameraShake(0.4, 0.15);
-  updateFruitUI();
-}
-
-// ============================================================
-// CÁMARA SHAKE
-// ============================================================
-function addCameraShake(intensity, duration) {
-  camShake = Math.max(camShake, intensity);
-  camShakeTime = Math.max(camShakeTime, duration);
-}
-
-// ============================================================
-// HIT STOP / SLOW MOTION
-// ============================================================
-function triggerHitStop(duration = 0.08) {
-  S.hitStopTimer = duration;
-}
-
-function triggerSlowmo(duration = 0.5) {
-  S.slowmoTimer = duration;
-  document.getElementById('slowmo').classList.add('active');
-}
-
-// ============================================================
-// CONTROLES
-// ============================================================
-const keys = {};
-let mouseDown = false;
-let mouseHoldTime = 0;
-
-document.addEventListener('keydown', e => {
-  keys[e.code] = true;
-
-  if (!S.playing) return;
-
-  if (e.code === 'Space' && S.onGround) {
-    S.velocityY = CFG.jumpForce;
-    S.onGround = false;
-    // Partículas de salto
-    for (let i = 0; i < 10; i++) {
-      spawnParticle(
-        player.position.clone().setY(0.4),
-        new THREE.Vector3(randRange(-2, 2), randRange(0, 3), randRange(-2, 2)),
-        0xffffff, 0.2, 0.5
-      );
-    }
+    const bGeo = new THREE.BoxGeometry(w, h, d);
+    const bMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
+    const b = new THREE.Mesh(bGeo, bMat);
+    b.position.set(x, h/2, z);
+    b.castShadow = true;
+    b.receiveShadow = true;
+    scene.add(b);
+    
+    // Tejado
+    const rGeo = new THREE.ConeGeometry(w * 0.8, 4, 4);
+    const rMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
+    const r = new THREE.Mesh(rGeo, rMat);
+    r.position.set(x, h + 2, z);
+    r.rotation.y = Math.PI / 4;
+    r.castShadow = true;
+    scene.add(r);
   }
 
-  if (e.code === 'KeyF') spawnFireball();
-
-  if (e.code === 'KeyE' && S.dashCooldown <= 0 && !S.isDashing) {
-    // Dash
-    S.isDashing = true;
-    S.dashTimer = CFG.dashDuration;
-    S.dashCooldown = CFG.dashCooldown;
-    const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
-    const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
-    S.dashDir.set(0, 0, 0);
-    if (keys['KeyW']) S.dashDir.add(forward);
-    if (keys['KeyS']) S.dashDir.sub(forward);
-    if (keys['KeyD']) S.dashDir.add(right);
-    if (keys['KeyA']) S.dashDir.sub(right);
-    if (S.dashDir.lengthSq() === 0) S.dashDir.copy(forward);
-    S.dashDir.normalize();
-    addCameraShake(0.3, 0.2);
-  }
-
-  if (e.code === 'KeyQ' && !S.isCharging) {
-    S.isCharging = true;
-    S.chargeTimer = 0;
-  }
-});
-
-document.addEventListener('keyup', e => {
-  keys[e.code] = false;
-  if (e.code === 'KeyQ' && S.isCharging) {
-    S.isCharging = false;
-    if (S.chargeTimer >= CFG.chargedAttackTime) {
-      doChargedAttack();
-    }
-    S.chargeTimer = 0;
-  }
-});
-
-renderer.domElement.addEventListener('mousedown', e => {
-  if (e.button === 0) {
-    mouseDown = true;
-    mouseHoldTime = 0;
-    S.lastMouseDown = performance.now();
-  }
-});
-
-renderer.domElement.addEventListener('mouseup', () => {
-  mouseDown = false;
-});
-
-document.addEventListener('mousemove', e => {
-  if (document.pointerLockElement !== renderer.domElement) return;
-  camYaw -= e.movementX * 0.003;
-  camPitch -= e.movementY * 0.003;
-  camPitch = Math.max(camPitchMin, Math.min(camPitchMax, camPitch));
-});
-
-renderer.domElement.addEventListener('click', () => {
-  if (S.playing) renderer.domElement.requestPointerLock();
-});
-
-function randRange(a, b) { return a + Math.random() * (b - a); }
-
-// ============================================================
-// COMBATE
-// ============================================================
-function attack() {
-  const now = performance.now();
-  if (now - S.lastAttack < 300) return;
-  S.lastAttack = now;
-
-  // Combo aumenta
-  S.comboCount++;
-  S.comboTimer = 2;
-  S.maxCombo = Math.max(S.maxCombo, S.comboCount);
-
-  // Animación de golpe
-  animateSwordSwing();
-
-  // Hit stop
-  triggerHitStop(0.06);
-
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  dir.y = 0;
-  dir.normalize();
-
-  let hitSomething = false;
-  const damage = CFG.attackDamage * S.meleeStat * (1 + S.comboCount * 0.1);
-
-  for (const e of enemies) {
-    if (!e.alive) continue;
-    const to = e.mesh.position.clone().sub(player.position);
-    to.y = 0;
-    const dist = to.length();
-    if (dist > 4) continue;
-    to.normalize();
-    if (to.dot(dir) > 0.2) {
-      damageEnemy(e, damage, to);
-      hitSomething = true;
-    }
-  }
-
-  if (hitSomething) {
-    showHitmarker();
-    // Partículas de golpe
-    for (let i = 0; i < 12; i++) {
-      spawnParticle(
-        player.position.clone().add(dir.clone().multiplyScalar(2)).setY(2),
-        new THREE.Vector3(randRange(-4, 4), randRange(0, 4), randRange(-4, 4)),
-        Math.random() > 0.5 ? 0xffaa00 : 0xffffff,
-        0.15, 0.4
-      );
-    }
-    addCameraShake(0.25, 0.1);
-    updateComboUI();
+  // Árboles
+  for(let i=0; i<20; i++) {
+    const tree = new THREE.Group();
+    const tGeo = new THREE.CylinderGeometry(0.5, 0.7, 4);
+    const tMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
+    const trunk = new THREE.Mesh(tGeo, tMat);
+    trunk.position.y = 2;
+    trunk.castShadow = true;
+    tree.add(trunk);
+    
+    const lGeo = new THREE.SphereGeometry(2.5);
+    const lMat = new THREE.MeshStandardMaterial({ color: 0x2d7a2d });
+    const leaves = new THREE.Mesh(lGeo, lMat);
+    leaves.position.y = 4.5;
+    leaves.castShadow = true;
+    tree.add(leaves);
+    
+    let x = (Math.random() - 0.5) * 100;
+    let z = (Math.random() - 0.5) * 100;
+    if (Math.abs(x) < 10 && Math.abs(z) < 10) continue; // No en el spawn
+    
+    tree.position.set(x, 0, z);
+    scene.add(tree);
   }
 }
 
-function doChargedAttack() {
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  dir.y = 0;
-  dir.normalize();
+let playerParts = {};
 
-  addCameraShake(0.8, 0.3);
-  triggerSlowmo(0.3);
-  triggerHitStop(0.15);
+function buildPlayer() {
+  player = new THREE.Group();
+  
+  // Cuerpo (Camisa verde neón)
+  const torsoGeo = new THREE.BoxGeometry(1.5, 2, 0.8);
+  const torsoMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Verde
+  const torso = new THREE.Mesh(torsoGeo, torsoMat);
+  torso.position.y = 2;
+  torso.castShadow = true;
+  player.add(torso);
 
-  // Onda de choque visual
-  for (let i = 0; i < 40; i++) {
-    const angle = (i / 40) * Math.PI * 2;
-    const vel = new THREE.Vector3(
-      Math.cos(angle) * randRange(5, 10),
-      randRange(1, 4),
-      Math.sin(angle) * randRange(5, 10)
-    );
-    spawnParticle(
-      player.position.clone().setY(1.5),
-      vel,
-      0xff4400, 0.4, 0.8
-    );
-  }
+  // Cabeza
+  const headGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+  const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = 3.8;
+  head.castShadow = true;
+  player.add(head);
 
-  const damage = CFG.chargedAttackDamage * S.meleeStat;
+  // Pelo (Cubriendo la cara)
+  const hairGeo = new THREE.BoxGeometry(1.25, 0.5, 1.25);
+  const hairMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+  const hair = new THREE.Mesh(hairGeo, hairMat);
+  hair.position.y = 4.2;
+  hair.position.z = 0.05;
+  player.add(hair);
 
-  for (const e of enemies) {
-    if (!e.alive) continue;
-    const to = e.mesh.position.clone().sub(player.position);
-    to.y = 0;
-    const dist = to.length();
-    if (dist > 8) continue;
-    to.normalize();
-    if (to.dot(dir) > 0) {
-      damageEnemy(e, damage / (1 + dist * 0.1), to);
-    }
-  }
+  // Capa de piel (Blanca alrededor del cuello)
+  const capeGeo = new THREE.CylinderGeometry(1, 1.2, 0.8, 8);
+  const capeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const cape = new THREE.Mesh(capeGeo, capeMat);
+  cape.position.y = 2.8;
+  cape.castShadow = true;
+  player.add(cape);
+
+  // Piernas
+  const legGeo = new THREE.BoxGeometry(0.6, 1.8, 0.6);
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+  
+  const legL = new THREE.Mesh(legGeo, legMat);
+  legL.position.set(-0.4, 0.9, 0);
+  legL.castShadow = true;
+  player.add(legL);
+  
+  const legR = new THREE.Mesh(legGeo, legMat);
+  legR.position.set(0.4, 0.9, 0);
+  legR.castShadow = true;
+  player.add(legR);
+
+  // Brazos
+  const armGeo = new THREE.BoxGeometry(0.5, 1.8, 0.5);
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  
+  const armL = new THREE.Mesh(armGeo, armMat);
+  armL.position.set(-1.1, 2, 0);
+  armL.castShadow = true;
+  player.add(armL);
+  
+  const armR = new THREE.Mesh(armGeo, armMat);
+  armR.position.set(1.1, 2, 0);
+  armR.castShadow = true;
+  player.add(armR);
+
+  playerParts = { legL, legR, armL, armR, torso };
+  
+  scene.add(player);
 }
 
-let swordSwingState = 0;
-
-function animateSwordSwing() {
-  swordSwingState = 1;
+function onWindowResize() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
 }
 
-function damageEnemy(enemy, dmg, direction) {
-  enemy.hp -= dmg;
-  enemy.hitFlash = 0.15;
+// ===== LÓGICA DE CONTROLES TÁCTILES =====
+const joystick = document.getElementById('joystick');
+const knob = document.getElementById('knob');
+const jumpBtn = document.getElementById('jump-btn');
+let joystickActive = false;
+let joystickCenter = { x: 0, y: 0 };
+const maxDist = 40;
 
-  // Flash blanco
-  enemy.mesh.traverse(child => {
-    if (child.isMesh && child.material && child.material.color) {
-      if (!child.userData._origColor) {
-        child.userData._origColor = child.material.color.getHex();
-        child.userData._origEmissive = child.material.emissive ? child.material.emissive.getHex() : 0;
-      }
-      child.material.color.setHex(0xffffff);
-      if (child.material.emissive) child.material.emissive.setHex(0xffffff);
-    }
-  });
+function setupTouchControls() {
+  joystick.addEventListener('touchstart', handleJoystickStart);
+  joystick.addEventListener('touchmove', handleJoystickMove);
+  joystick.addEventListener('touchend', handleJoystickEnd);
+  joystick.addEventListener('mousedown', handleJoystickStart);
+  document.addEventListener('mousemove', handleJoystickMove);
+  document.addEventListener('mouseup', handleJoystickEnd);
 
-  // Knockback
-  if (direction) {
-    enemy.knockback.copy(direction).multiplyScalar(8);
-  }
-
-  // Actualizar barra
-  const pct = Math.max(0, enemy.hp / enemy.maxHp);
-  enemy.hpFill.scale.x = pct;
-  enemy.hpFill.position.x = -(1 - pct) * 0.8;
-
-  // Partículas de impacto
-  for (let i = 0; i < 6; i++) {
-    spawnParticle(
-      enemy.mesh.position.clone().setY(2),
-      new THREE.Vector3(randRange(-3, 3), randRange(0, 3), randRange(-3, 3)),
-      0xff2200, 0.2, 0.4
-    );
-  }
-
-  if (enemy.hp <= 0) killEnemy(enemy);
+  jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); doJump(); });
+  jumpBtn.addEventListener('mousedown', doJump);
 }
 
-function killEnemy(enemy) {
-  enemy.alive = false;
-  enemy.deathTimer = 1.5;
-
-  // Explosión masiva de partículas
-  for (let i = 0; i < 40; i++) {
-    spawnParticle(
-      enemy.mesh.position.clone().setY(2),
-      new THREE.Vector3(randRange(-8, 8), randRange(0, 10), randRange(-8, 8)),
-      Math.random() > 0.5 ? 0xff0044 : 0xffaa00,
-      0.3, randRange(0.6, 1.2)
-    );
-  }
-
-  addXP(enemy.xpValue);
-  S.killCount++;
-  addKillFeed(`+${enemy.xpValue} XP — ¡Pirata eliminado!`, true);
-
-  addCameraShake(0.5, 0.3);
-
-  // Slowmo al matar si es el 3er kill seguido
-  if (S.comboCount >= 3) {
-    triggerSlowmo(0.4);
-  }
-
-  updateStatsUI();
+function handleJoystickStart(e) {
+  joystickActive = true;
+  const rect = joystick.getBoundingClientRect();
+  joystickCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
 }
 
-// ============================================================
-// UI
-// ============================================================
-function showHitmarker() {
-  const hm = document.getElementById('hitmarker');
-  hm.classList.remove('active');
-  void hm.offsetWidth;
-  hm.classList.add('active');
-}
+function handleJoystickMove(e) {
+  if (!joystickActive) return;
+  e.preventDefault();
+  
+  let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  let clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-function updateComboUI() {
-  const combo = document.getElementById('combo');
-  const label = document.getElementById('combo-label');
-  if (S.comboCount >= 2) {
-    combo.textContent = S.comboCount;
-    combo.classList.add('active');
-    label.classList.add('active');
-    combo.classList.remove('pulse');
-    void combo.offsetWidth;
-    combo.classList.add('pulse');
+  let dx = clientX - joystickCenter.x;
+  let dy = clientY - joystickCenter.y;
+  const dist = Math.hypot(dx, dy);
+  
+  if (dist > maxDist) {
+    dx = (dx / dist) * maxDist;
+    dy = (dy / dist) * maxDist;
   }
+  
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  
+  // Normalizar para el movimiento (Y invertida para pantalla)
+  controls.right = dx / maxDist;
+  controls.forward = -dy / maxDist;
 }
 
-function addXP(amount) {
-  S.xp += amount;
-  while (S.xp >= S.xpToNext) {
-    S.xp -= S.xpToNext;
-    levelUp();
-  }
-  updateStatsUI();
+function handleJoystickEnd() {
+  joystickActive = false;
+  knob.style.transform = `translate(0px, 0px)`;
+  controls.right = 0;
+  controls.forward = 0;
 }
 
-function levelUp() {
-  S.level++;
-  S.xpToNext = Math.floor(S.xpToNext * 1.4);
-  S.maxHp += 20;
-  S.hp = S.maxHp;
-  const roll = Math.floor(Math.random() * 3);
-  if (roll === 0) S.meleeStat += 0.5;
-  else if (roll === 1) S.defenseStat += 0.5;
-  else S.fruitStat += 0.5;
-
-  addKillFeed(`⭐ ¡NIVEL ${S.level}!`, true);
-  addCameraShake(0.6, 0.4);
-  triggerSlowmo(0.3);
-
-  // Partículas de level up
-  for (let i = 0; i < 50; i++) {
-    spawnParticle(
-      player.position.clone().setY(2),
-      new THREE.Vector3(randRange(-6, 6), randRange(3, 10), randRange(-6, 6)),
-      0x00ff88, 0.4, 1.2
-    );
+function doJump() {
+  if (!isJumping) {
+    playerVelY = 10;
+    isJumping = true;
   }
 }
 
-function addKillFeed(text, isXp) {
-  const feed = document.getElementById('kill-feed');
-  const msg = document.createElement('div');
-  msg.className = 'kill-msg' + (isXp ? ' xp' : '');
-  msg.textContent = text;
-  feed.appendChild(msg);
-  setTimeout(() => msg.remove(), 4000);
-}
-
-function updateStatsUI() {
-  document.getElementById('stat-melee').textContent = S.meleeStat.toFixed(1);
-  document.getElementById('stat-defense').textContent = S.defenseStat.toFixed(1);
-  document.getElementById('stat-fruit').textContent = S.fruitStat.toFixed(1);
-  document.getElementById('stat-kills').textContent = S.killCount;
-  document.getElementById('level-num').textContent = S.level;
-  document.getElementById('hp-bar-fill').style.width = (S.hp / S.maxHp * 100) + '%';
-  document.getElementById('hp-bar-text').textContent = `${Math.ceil(S.hp)} / ${S.maxHp}`;
-  document.getElementById('xp-bar-fill').style.width = ((S.xp / S.xpToNext) * 100) + '%';
-  document.getElementById('xp-bar-text').textContent = `${S.xp} / ${S.xpToNext} XP`;
-}
-
-function updateFruitUI() {
-  const slot = document.getElementById('fruit-slot');
-  const icon = document.getElementById('fruit-icon');
-  const cd = document.getElementById('fruit-cooldown');
-  if (S.hasFruit) {
-    slot.classList.remove('empty');
-    icon.textContent = '🔥';
-    if (S.fruitCooldown > 0) {
-      cd.classList.add('active');
-      cd.textContent = Math.ceil(S.fruitCooldown);
-    } else cd.classList.remove('active');
-  } else {
-    slot.classList.add('empty');
-    icon.textContent = '🍎';
-    cd.classList.remove('active');
-  }
-}
-
-// ============================================================
-// LOOP PRINCIPAL
-// ============================================================
-const clock = new THREE.Clock();
-let animTime = 0;
-let gameElapsedTime = 0;
+// ===== GAME LOOP =====
+let camYaw = 0;
 
 function animate() {
-  if (!S.playing) return;
   requestAnimationFrame(animate);
+  
+  if (!clock || !player) return;
+  const dt = Math.min(clock.getDelta(), 0.1);
 
-  let dt = Math.min(clock.getDelta(), 0.1);
+  // Movimiento del jugador
+  const speed = 8;
+  const moveZ = controls.forward;
+  const moveX = controls.right;
 
-  // Hit stop congela el juego brevemente
-  if (S.hitStopTimer > 0) {
-    S.hitStopTimer -= dt;
-    dt *= 0.1;
-  }
-
-  // Slowmo global
-  if (S.slowmoTimer > 0) {
-    S.slowmoTimer -= dt;
-    dt *= 0.4;
-    if (S.slowmoTimer <= 0) {
-      document.getElementById('slowmo').classList.remove('active');
-    }
-  }
-
-  animTime += dt;
-  gameElapsedTime += dt;
-
-  // Combo timer
-  if (S.comboTimer > 0) {
-    S.comboTimer -= dt;
-    if (S.comboTimer <= 0) {
-      S.comboCount = 0;
-      document.getElementById('combo').classList.remove('active');
-      document.getElementById('combo-label').classList.remove('active');
-    }
-  }
-
-  // Dash cooldown
-  if (S.dashCooldown > 0) S.dashCooldown -= dt;
-
-  // Charging
-  if (S.isCharging) {
-    S.chargeTimer += dt;
-  }
-
-  // ========== MOVIMIENTO ==========
-  const isRun = (keys['ShiftLeft'] || keys['ShiftRight']);
-  const speed = isRun ? CFG.runSpeed : CFG.walkSpeed;
-
-  const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
-  const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
-
-  const moveVec = new THREE.Vector3();
-  if (!S.isDashing) {
-    if (keys['KeyW']) moveVec.add(forward);
-    if (keys['KeyS']) moveVec.sub(forward);
-    if (keys['KeyD']) moveVec.add(right);
-    if (keys['KeyA']) moveVec.sub(right);
-  } else {
-    moveVec.copy(S.dashDir).multiplyScalar(CFG.dashSpeed / speed);
-  }
-
-  let isMoving = false;
-  if (moveVec.lengthSq() > 0) {
-    moveVec.normalize();
-    player.position.x += moveVec.x * speed * dt;
-    player.position.z += moveVec.z * speed * dt;
-    isMoving = true;
-
-    // Rotar personaje
-    const targetRot = Math.atan2(moveVec.x, moveVec.z);
+  if (moveZ !== 0 || moveX !== 0) {
+    // Calcular rotación del jugador basado en dirección
+    const targetRot = Math.atan2(moveX, moveZ);
     let diff = targetRot - player.rotation.y;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
-    player.rotation.y += diff * dt * 15;
-  }
+    player.rotation.y += diff * dt * 10;
 
-  // Dash timer
-  if (S.isDashing) {
-    S.dashTimer -= dt;
-    // Estela de partículas
-    for (let i = 0; i < 4; i++) {
-      spawnParticle(
-        player.position.clone().setY(randRange(0.5, 2.5)),
-        new THREE.Vector3(randRange(-1, 1), randRange(-1, 1), randRange(-1, 1)),
-        Math.random() > 0.5 ? 0x00ccff : 0xffffff,
-        0.25, 0.4
-      );
-    }
-    if (S.dashTimer <= 0) S.isDashing = false;
-  }
+    // Mover
+    player.position.x += moveX * speed * dt;
+    player.position.z += moveZ * speed * dt;
 
-  // Animación de caminar
-  animateWalk(isMoving, isRun, dt);
-
-  // Gravedad
-  S.velocityY -= CFG.gravity * dt;
-  player.position.y += S.velocityY * dt;
-  if (player.position.y <= 0.3) {
-    player.position.y = 0.3;
-    S.velocityY = 0;
-    S.onGround = true;
-  }
-
-  // Límites de la isla
-  const dC = Math.hypot(player.position.x, player.position.z);
-  if (dC > CFG.islandSize - 1) {
-    const a = Math.atan2(player.position.z, player.position.x);
-    player.position.x = Math.cos(a) * (CFG.islandSize - 1);
-    player.position.z = Math.sin(a) * (CFG.islandSize - 1);
-  }
-
-  // ========== CÁMARA ACOSTADA ==========
-  const idealCamX = player.position.x + Math.sin(camYaw) * camDist * Math.cos(camPitch);
-  const idealCamZ = player.position.z + Math.cos(camYaw) * camDist * Math.cos(camPitch);
-  const idealCamY = player.position.y + 4 + Math.sin(camPitch) * camDist;
-
-  camera.position.x += (idealCamX - camera.position.x) * Math.min(1, dt * 8);
-  camera.position.y += (idealCamY - camera.position.y) * Math.min(1, dt * 8);
-  camera.position.z += (idealCamZ - camera.position.z) * Math.min(1, dt * 8);
-
-  // Shake
-  if (camShakeTime > 0) {
-    camShakeTime -= dt;
-    const shakeAmt = camShake * (camShakeTime / 0.3);
-    camera.position.x += randRange(-shakeAmt, shakeAmt);
-    camera.position.y += randRange(-shakeAmt, shakeAmt);
-    camera.position.z += randRange(-shakeAmt, shakeAmt);
-    camShake *= 0.9;
-  }
-
-  camera.lookAt(player.position.x, player.position.y + 2.2, player.position.z);
-
-  // FOV dinámico (más FOV al correr/dashear)
-  const targetFov = S.isDashing ? 75 : (isRun && isMoving ? 68 : 60);
-  camFov += (targetFov - camFov) * dt * 5;
-  camera.fov = camFov;
-  camera.updateProjectionMatrix();
-
-  // Rim light sigue al jugador
-  rimLight.position.copy(player.position).add(new THREE.Vector3(0, 3, 0));
-  rimLight.intensity = 1 + Math.sin(animTime * 4) * 0.3;
-
-  // ========== ATAQUE ==========
-  if (mouseDown) {
-    mouseHoldTime += dt;
-    attack();
-  }
-
-  // ========== ESPADA ANIMACIÓN ==========
-  if (swordSwingState > 0) {
-    swordSwingState -= dt * 6;
-    const swing = Math.sin((1 - swordSwingState) * Math.PI);
-    skeleton.armR.rotation.x = -swing * 2;
-    skeleton.armR.rotation.z = swing * 0.5;
+    // Animación de caminar
+    const walkTime = clock.getElapsedTime() * 10;
+    const swing = Math.sin(walkTime) * 0.5;
+    if(playerParts.legL) playerParts.legL.rotation.x = swing;
+    if(playerParts.legR) playerParts.legR.rotation.x = -swing;
+    if(playerParts.armL) playerParts.armL.rotation.x = -swing;
+    if(playerParts.armR) playerParts.armR.rotation.x = swing;
   } else {
-    skeleton.armR.rotation.x += (0 - skeleton.armR.rotation.x) * dt * 10;
-    skeleton.armR.rotation.z += (0 - skeleton.armR.rotation.z) * dt * 10;
+    // Idle
+    if(playerParts.legL) playerParts.legL.rotation.x *= 0.8;
+    if(playerParts.legR) playerParts.legR.rotation.x *= 0.8;
+    if(playerParts.armL) playerParts.armL.rotation.x *= 0.8;
+    if(playerParts.armR) playerParts.armR.rotation.x *= 0.8;
   }
 
-  // ========== FRUTA ==========
-  fruit.rotation.y += dt * 2;
-  fruit.position.y = 1.3 + Math.sin(animTime * 2) * 0.25;
-  fruitLight.position.copy(fruit.position);
-  fruitLight.intensity = 3 + Math.sin(animTime * 4) * 1;
-
-  if (!S.hasFruit && player.position.distanceTo(fruit.position) < 2) {
-    S.hasFruit = true;
-    S.fruitStat = 2;
-    scene.remove(fruit);
-    scene.remove(fruitLight);
-    addKillFeed('🔥 ¡Fruta Mera Mera obtenida! Pulsa F', true);
-
-    for (let i = 0; i < 30; i++) {
-      spawnParticle(
-        player.position.clone().setY(2),
-        new THREE.Vector3(randRange(-6, 6), randRange(2, 8), randRange(-6, 6)),
-        0xff4400, 0.3, 1
-      );
-    }
-    addCameraShake(0.5, 0.3);
-    updateFruitUI();
-    updateStatsUI();
-  }
-
-  // Cooldown fruta
-  if (S.fruitCooldown > 0) {
-    S.fruitCooldown -= dt;
-    if (S.fruitCooldown <= 0) S.fruitCooldown = 0;
-    updateFruitUI();
-  }
-
-  // ========== FIREBALLS ==========
-  for (let i = fireballs.length - 1; i >= 0; i--) {
-    const fb = fireballs[i];
-    fb.life -= dt;
-    fb.mesh.position.add(fb.velocity.clone().multiplyScalar(dt));
-    fb.mesh.rotation.x += dt * 10;
-    fb.mesh.rotation.y += dt * 8;
-    fb.light.position.copy(fb.mesh.position);
-
-    // Estela de fuego
-    for (let j = 0; j < 3; j++) {
-      spawnParticle(
-        fb.mesh.position.clone(),
-        new THREE.Vector3(randRange(-2, 2), randRange(-1, 2), randRange(-2, 2)),
-        Math.random() > 0.5 ? 0xff4400 : 0xffaa00,
-        0.2, 0.4
-      );
-    }
-
-    let hit = false;
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      const d = fb.mesh.position.distanceTo(e.mesh.position.clone().setY(2));
-      if (d < 1.8) {
-        damageEnemy(e, CFG.fruitDamage * S.fruitStat, null);
-        // AoE
-        for (const e2 of enemies) {
-          if (!e2.alive || e2 === e) continue;
-          const d2 = fb.mesh.position.distanceTo(e2.mesh.position.clone().setY(2));
-          if (d2 < CFG.fruitRadius) {
-            damageEnemy(e2, CFG.fruitDamage * 0.6 * S.fruitStat, null);
-          }
-        }
-        // Explosión grande
-        for (let k = 0; k < 40; k++) {
-          spawnParticle(
-            fb.mesh.position.clone(),
-            new THREE.Vector3(randRange(-10, 10), randRange(0, 12), randRange(-10, 10)),
-            Math.random() > 0.5 ? 0xff4400 : 0xffaa00,
-            0.35, randRange(0.5, 1.2)
-          );
-        }
-        addCameraShake(0.6, 0.3);
-        hit = true;
-        break;
-      }
-    }
-
-    if (hit || fb.life <= 0 || fb.mesh.position.y < 0) {
-      scene.remove(fb.mesh);
-      scene.remove(fb.light);
-      fireballs.splice(i, 1);
+  // Física de salto
+  if (isJumping) {
+    playerVelY -= 30 * dt;
+    player.position.y += playerVelY * dt;
+    if (player.position.y <= 0) {
+      player.position.y = 0;
+      isJumping = false;
+      playerVelY = 0;
     }
   }
 
-  // ========== ENEMIGOS ==========
-  for (let i = enemies.length - 1; i >= 0; i--) {
-    const e = enemies[i];
+  // Cámara (Tercera persona, estilo Blox Fruits)
+  // La cámara sigue al jugador con un offset
+  const camDist = 12;
+  const camHeight = 6;
+  
+  const idealX = player.position.x + Math.sin(camYaw) * camDist;
+  const idealZ = player.position.z + Math.cos(camYaw) * camDist;
+  const idealY = player.position.y + camHeight;
 
-    if (!e.alive) {
-      e.deathTimer -= dt;
-      // Ragdoll al morir
-      e.mesh.rotation.x += dt * 4;
-      e.mesh.rotation.z += dt * 3;
-      e.mesh.position.y -= dt * 6;
-      e.mesh.scale.setScalar(Math.max(0, e.deathTimer / 1.5));
-      if (e.deathTimer <= 0 || e.mesh.position.y < -2) {
-        scene.remove(e.mesh);
-        enemies.splice(i, 1);
-      }
-      continue;
-    }
+  camera.position.x += (idealX - camera.position.x) * dt * 5;
+  camera.position.y += (idealY - camera.position.y) * dt * 5;
+  camera.position.z += (idealZ - camera.position.z) * dt * 5;
 
-    // Hit flash recovery
-    if (e.hitFlash > 0) {
-      e.hitFlash -= dt;
-      if (e.hitFlash <= 0) {
-        e.mesh.traverse(child => {
-          if (child.isMesh && child.material && child.userData._origColor !== undefined) {
-            child.material.color.setHex(child.userData._origColor);
-            if (child.material.emissive) child.material.emissive.setHex(child.userData._origEmissive);
-          }
-        });
-      }
-    }
+  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
 
-    // Knockback
-    if (e.knockback.lengthSq() > 0.01) {
-      e.mesh.position.add(e.knockback.clone().multiplyScalar(dt));
-      e.knockback.multiplyScalar(0.85);
-    }
-
-    // IA
-    const toP = player.position.clone().sub(e.mesh.position);
-    toP.y = 0;
-    const dist = toP.length();
-
-    if (dist > 2 && dist < 30) {
-      toP.normalize();
-      e.mesh.position.x += toP.x * e.speed * dt;
-      e.mesh.position.z += toP.z * e.speed * dt;
-      e.mesh.rotation.y = Math.atan2(toP.x, toP.z);
-
-      // Animación caminar
-      e.walkCycle += dt * 8;
-      const swing = Math.sin(e.walkCycle) * 0.5;
-      e.skel.legL.rotation.x = swing;
-      e.skel.legR.rotation.x = -swing;
-      e.skel.armL.rotation.x = -swing * 0.7;
-      e.skel.armR.rotation.x = swing * 0.7;
-    } else if (dist <= 2) {
-      // Ataque
-      e.attackCooldown -= dt;
-      // Animación de ataque
-      const atkSwing = Math.sin(Math.max(0, e.attackCooldown / 1.5) * Math.PI);
-      e.skel.armR.rotation.x = -atkSwing * 2;
-
-      if (e.attackCooldown <= 0) {
-        e.attackCooldown = 1.5;
-        const dmg = Math.max(1, 12 - S.defenseStat * 2);
-        takeDamage(dmg);
-      }
-    }
-
-    // Barra mira a cámara
-    e.hpFill.parent.lookAt(camera.position);
+  // Animar HUD (simular que hace cosas)
+  if (Math.random() < 0.01) {
+    const energyFill = document.getElementById('energy-fill');
+    const val = 50 + Math.random() * 50;
+    energyFill.style.width = val + '%';
   }
-
-  // Spawn
-  if (enemies.filter(e => e.alive).length < 6 && Math.random() < dt * 0.4) {
-    const a = Math.random() * Math.PI * 2;
-    const r = 25 + Math.random() * 15;
-    const ex = Math.cos(a) * r, ez = Math.sin(a) * r;
-    if (Math.hypot(ex - player.position.x, ez - player.position.z) > 12) {
-      createEnemy(ex, ez, Math.floor(S.level / 2));
-    }
-  }
-
-  // Partículas
-  updateParticles(dt);
-
-  // Océano animado
-  const positions = waterGeo.attributes.position;
-  for (let i = 0; i < positions.count; i++) {
-    const x = positions.getX(i);
-    const z = positions.getY(i);
-    positions.setZ(i, Math.sin(x * 0.05 + animTime) * 0.3 + Math.cos(z * 0.05 + animTime) * 0.3);
-  }
-  positions.needsUpdate = true;
 
   renderer.render(scene, camera);
 }
 
-function animateWalk(isMoving, isRun, dt) {
-  if (S.isDashing) {
-    // Pose de dash
-    skeleton.armL.rotation.x = -1.2;
-    skeleton.armR.rotation.x = -1.2;
-    skeleton.legL.rotation.x = 0.8;
-    skeleton.legR.rotation.x = -0.8;
-    skeleton.torso.rotation.x = 0.3;
-    return;
-  }
-  if (S.isCharging) {
-    // Pose de carga
-    skeleton.armL.rotation.x = -2;
-    skeleton.armR.rotation.x = -2;
-    skeleton.torso.rotation.x = -0.2;
-    return;
-  }
-
-  if (isMoving) {
-    const freq = isRun ? 14 : 9;
-    const swing = Math.sin(animTime * freq) * (isRun ? 0.7 : 0.5);
-    skeleton.legL.rotation.x = swing;
-    skeleton.legR.rotation.x = -swing;
-    skeleton.armL.rotation.x = -swing * 0.7;
-    // armR controlado por el ataque, no por caminar
-    skeleton.torso.rotation.z = Math.sin(animTime * freq) * 0.05;
-    skeleton.torso.rotation.x = -0.1;
-  } else {
-    // Idle breathing
-    const breathe = Math.sin(animTime * 2) * 0.03;
-    skeleton.torso.position.y = 2.2 + breathe;
-    skeleton.torso.rotation.x += (0 - skeleton.torso.rotation.x) * dt * 8;
-    skeleton.torso.rotation.z += (0 - skeleton.torso.rotation.z) * dt * 8;
-    skeleton.legL.rotation.x *= 0.85;
-    skeleton.legR.rotation.x *= 0.85;
-    skeleton.armL.rotation.x *= 0.85;
-    skeleton.armL.rotation.z *= 0.85;
-  }
+// ===== INICIO DEL JUEGO =====
+function startGame(faction) {
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('game-ui').style.display = 'block';
+  
+  // Mostrar notificación
+  const notif = document.getElementById('notification');
+  notif.innerHTML = `Unido al equipo de &lt;${faction}&gt;.`;
+  notif.style.opacity = '1';
+  setTimeout(() => { notif.style.opacity = '0'; }, 3000);
+  
+  // Iniciar el clock
+  clock = new THREE.Clock();
 }
 
-function takeDamage(d mg) {
-  S.hp -= dmg;
-  document.getElementById('damage-overlay').classList.add('active');
-  setTimeout(() => document.getElementById('damage-overlay').classList.remove('active'), 150);
-  addCameraShake(0.5, 0.2);
-  updateStatsUI();
-
-  if (S.hp <= 0) {
-    S.hp = 0;
-    updateStatsUI();
-    gameOver();
+// Efecto de clic
+document.addEventListener('click', () => {
+  if (document.getElementById('game-ui').style.display === 'block' && !document.pointerLockElement) {
+    // Simular usar habilidad
+    const activeSkill = document.querySelector('.skill-slot.active');
+    if (activeSkill) {
+      activeSkill.style.transform = 'scale(0.9)';
+      setTimeout(() => activeSkill.style.transform = 'scale(1)', 100);
+    }
   }
-}
-
-function gameOver() {
-  S.playing = false;
-  document.exitPointerLock();
-  document.getElementById('go-level').textContent = S.level;
-  document.getElementById('go-kills').textContent = S.killCount;
-  document.getElementById('go-combo').textContent = S.maxCombo;
-  document.getElementById('go-time').textContent = Math.floor(gameElapsedTime) + 's';
-  document.getElementById('gameover').classList.add('active');
-}
-
-// START
-document.getElementById('start-btn').addEventListener('click', () => {
-  document.getElementById('overlay').classList.add('fade');
-  setTimeout(() => document.getElementById('overlay').style.display = 'none', 800);
-
-  S.playing = true;
-  S.gameStartTime = performance.now();
-  camera.position.set(0, 15, 15);
-
-  updateStatsUI();
-  updateFruitUI();
-
-  setTimeout(() => renderer.domElement.requestPointerLock(), 100);
-
-  clock.start();
-  animate();
 });
-
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
-
-}
 </script>
 </body>
 </html>
