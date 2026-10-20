@@ -2,153 +2,467 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cristales en la Oscuridad — 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CRISTALES EN LA OSCURIDAD — OMEGA</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
+  html, body {
+    width: 100%; height: 100%;
     overflow: hidden;
     background: #000;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
     color: #fff;
     cursor: none;
+    user-select: none;
+    -webkit-user-select: none;
   }
   canvas { display: block; }
 
-  /* Crosshair */
+  /* ===== CROSSHAIR OMEGA ===== */
   #crosshair {
     position: fixed;
     top: 50%; left: 50%;
-    width: 8px; height: 8px;
-    margin: -4px 0 0 -4px;
-    border: 2px solid rgba(255,255,255,0.7);
-    border-radius: 50%;
+    width: 20px; height: 20px;
+    margin: -10px 0 0 -10px;
     pointer-events: none;
     z-index: 50;
-    box-shadow: 0 0 8px rgba(0,255,255,0.8);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #crosshair.active { opacity: 1; }
+  #crosshair::before, #crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(0, 255, 255, 0.8);
+    box-shadow: 0 0 6px rgba(0, 255, 255, 0.9);
+  }
+  #crosshair::before { width: 2px; height: 8px; top: 6px; left: 9px; }
+  #crosshair::after { width: 8px; height: 2px; top: 9px; left: 6px; }
+  #crosshair .dot {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: #00ffff;
+    border-radius: 50%;
+    top: 8.5px; left: 8.5px;
+    box-shadow: 0 0 8px #00ffff;
   }
 
-  /* HUD */
+  /* ===== HUD ===== */
   #hud {
     position: fixed;
-    top: 20px; left: 20px;
-    z-index: 40;
-    font-size: 18px;
-    text-shadow: 0 0 10px rgba(0,255,255,0.8);
+    inset: 0;
     pointer-events: none;
-    line-height: 1.8;
-  }
-  #hud .label { color: #00ffff; font-weight: bold; }
-
-  #timer {
-    position: fixed;
-    top: 20px; right: 20px;
     z-index: 40;
-    font-size: 28px;
-    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  #hud.active { opacity: 1; }
+
+  .hud-panel {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(0, 20, 30, 0.85), rgba(0, 10, 20, 0.7));
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    border-radius: 8px;
+    padding: 12px 18px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.05);
+  }
+
+  #hud-top-left { top: 20px; left: 20px; }
+  #hud-top-left .label {
+    font-size: 11px;
+    color: #00ffff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+  }
+  #hud-top-left .value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+    line-height: 1;
+  }
+  #hud-top-left .value .unit {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+  }
+
+  #hud-top-right { top: 20px; right: 20px; text-align: right; }
+  #hud-top-right .label {
+    font-size: 11px;
     color: #ff4444;
-    text-shadow: 0 0 15px rgba(255,68,68,0.9);
-    pointer-events: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    text-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+  }
+  #hud-top-right .value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255, 68, 68, 0.9);
+    font-variant-numeric: tabular-nums;
+  }
+  #hud-top-right .value.warning { animation: pulseRed 0.8s infinite; }
+  @keyframes pulseRed {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.05); }
   }
 
-  /* Brújula / objetivo */
-  #objective {
-    position: fixed;
-    bottom: 30px; left: 50%;
+  /* Stamina bar */
+  #stamina-container {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
     transform: translateX(-50%);
-    z-index: 40;
-    font-size: 16px;
-    color: #aaa;
-    text-align: center;
+    width: 200px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 3px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #stamina-container.active { opacity: 1; }
+  #stamina-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #00ffff, #00ff88);
+    border-radius: 3px;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  }
+  #stamina-fill.low { background: linear-gradient(90deg, #ff4444, #ff8800); }
+
+  /* Minimap */
+  #minimap-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(0, 255, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+    background: rgba(0, 10, 20, 0.9);
+  }
+  #minimap-canvas { width: 100%; height: 100%; }
+
+  /* Objective indicator */
+  #objective-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #objective-arrow {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #00ffff;
+    transition: transform 0.2s;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  }
+  #objective-text {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.6;
+  }
+  #objective-text strong { color: #00ffff; }
+
+  /* Damage overlay */
+  #damage-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, transparent 30%, rgba(255, 0, 0, 0.7));
+    opacity: 0;
     pointer-events: none;
-    text-shadow: 0 0 8px rgba(0,0,0,0.9);
+    z-index: 55;
+    transition: opacity 0.15s;
+  }
+  #damage-overlay.active { opacity: 1; }
+
+  /* Vignette */
+  #vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.8));
+    pointer-events: none;
+    z-index: 45;
   }
 
-  /* Pantalla de inicio / fin */
+  /* ===== OVERLAY START/END ===== */
   #overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle, rgba(10,10,30,0.95), rgba(0,0,0,1));
+    background: radial-gradient(ellipse at center, rgba(5, 10, 30, 0.98) 0%, rgba(0, 0, 0, 1) 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 100;
     text-align: center;
-    padding: 20px;
+    padding: 30px;
     cursor: pointer;
+    transition: opacity 0.8s;
   }
+  #overlay.fade-out { opacity: 0; pointer-events: none; }
+
   #overlay h1 {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    letter-spacing: 8px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 20px rgba(0,255,255,0.6));
+    filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+    animation: gradientShift 4s ease infinite;
+    line-height: 1.1;
   }
-  #overlay p { margin: 8px 0; color: #ccc; font-size: 1.1rem; }
-  #overlay .controls {
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  #overlay .subtitle {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: #446;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  #overlay .divider {
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    margin: 20px auto;
+    box-shadow: 0 0 10px #00ffff;
+  }
+  #overlay .instructions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 40px;
     margin: 25px 0;
-    padding: 20px 30px;
-    border: 1px solid rgba(0,255,255,0.3);
-    border-radius: 12px;
-    background: rgba(0,255,255,0.05);
+    max-width: 500px;
   }
-  #overlay .controls div { margin: 6px 0; font-size: 1rem; }
-  #overlay .controls strong { color: #00ffff; }
+  #overlay .instructions .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #889;
+  }
+  #overlay .instructions .key {
+    display: inline-block;
+    min-width: 60px;
+    padding: 5px 10px;
+    background: rgba(0, 255, 255, 0.08);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 4px;
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+  }
+  #overlay .lore {
+    max-width: 500px;
+    font-size: 13px;
+    color: #556;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    font-style: italic;
+  }
   #overlay button {
-    margin-top: 20px;
-    padding: 15px 50px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    background: linear-gradient(90deg, #00ffff, #ff00ff);
-    border: none;
-    border-radius: 10px;
-    color: #000;
+    padding: 16px 60px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(255, 0, 255, 0.15));
+    border: 1px solid rgba(0, 255, 255, 0.5);
+    border-radius: 4px;
+    color: #00ffff;
     cursor: pointer;
-    transition: transform 0.2s;
-    box-shadow: 0 0 30px rgba(0,255,255,0.5);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
   }
-  #overlay button:hover { transform: scale(1.05); }
-  .hidden { display: none !important; }
+  #overlay button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  #overlay button:hover::before { transform: translateX(100%); }
+  #overlay button:hover {
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.4);
+    transform: scale(1.03);
+  }
 
-  /* Efecto daño */
-  #damage {
+  /* End screen stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 50px;
+    margin: 25px 0;
+    padding: 20px 40px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 20, 30, 0.5);
+  }
+  .stats-grid .stat-label {
+    font-size: 11px;
+    color: #556;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .stats-grid .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #00ffff;
+    text-align: right;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+  }
+  .stats-grid .stat-value.gold { color: #ffaa00; text-shadow: 0 0 15px rgba(255, 170, 0, 0.6); }
+
+  /* Mobile warning */
+  #mobile-warning {
+    display: none;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 100, 0, 0.9);
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 200;
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* Loading bar */
+  #loading {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle, transparent 40%, rgba(255,0,0,0.6));
-    opacity: 0;
-    pointer-events: none;
-    z-index: 60;
-    transition: opacity 0.1s;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.5s;
+  }
+  #loading.fade-out { opacity: 0; pointer-events: none; }
+  #loading .bar-container {
+    width: 200px;
+    height: 2px;
+    background: rgba(0, 255, 255, 0.1);
+    margin-top: 20px;
+    overflow: hidden;
+  }
+  #loading .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #00ffff;
+    transition: width 0.3s;
+    box-shadow: 0 0 10px #00ffff;
+  }
+  #loading .text {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #00ffff;
+    text-transform: uppercase;
+    opacity: 0.6;
   }
 </style>
 </head>
 <body>
 
-<div id="crosshair" class="hidden"></div>
-<div id="damage"></div>
-
-<div id="hud" class="hidden">
-  <div><span class="label">◆ Cristales:</span> <span id="crystals">0</span> / <span id="total">0</span></div>
+<!-- ===== LOADING ===== -->
+<div id="loading">
+  <div class="text">INICIALIZANDO SISTEMAS</div>
+  <div class="bar-container"><div class="bar-fill" id="load-bar"></div></div>
 </div>
-<div id="timer" class="hidden">90</div>
-<div id="objective" class="hidden">Recolecta todos los cristales y encuentra la salida</div>
 
+<!-- ===== CROSSHAIR ===== -->
+<div id="crosshair"><div class="dot"></div></div>
+
+<!-- ===== DAMAGE ===== -->
+<div id="damage-overlay"></div>
+<div id="vignette"></div>
+
+<!-- ===== HUD ===== -->
+<div id="hud">
+  <div class="hud-panel" id="hud-top-left">
+    <div class="label">Cristales</div>
+    <div class="value"><span id="crystal-count">0</span><span class="unit"> / <span id="crystal-total">0</span></span></div>
+  </div>
+
+  <div class="hud-panel" id="hud-top-right">
+    <div class="label">Tiempo</div>
+    <div class="value" id="timer-display">90</div>
+  </div>
+
+  <div id="stamina-container">
+    <div id="stamina-fill"></div>
+  </div>
+
+  <div id="minimap-container">
+    <canvas id="minimap-canvas" width="140" height="140"></canvas>
+  </div>
+
+  <div id="objective-indicator">
+    <div id="objective-arrow">▲</div>
+    <div id="objective-text">
+      <strong>Objetivo:</strong><br>
+      <span id="objective-desc">Recolecta todos los cristales</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OVERLAY ===== -->
 <div id="overlay">
   <h1>CRISTALES EN LA OSCURIDAD</h1>
-  <p>Un laberinto. Una linterna. La salida te espera.</p>
-  <div class="controls">
-    <div><strong>WASD</strong> — Moverse</div>
-    <div><strong>Ratón</strong> — Mirar alrededor</div>
-    <div><strong>Shift</strong> — Correr</div>
-    <div><strong>Click</strong> — Bloquear cursor</div>
-    <div><strong>ESC</strong> — Liberar cursor</div>
+  <div class="subtitle">OMEGA EDITION</div>
+  <div class="divider"></div>
+  <div class="lore">
+    "El laberinto respira. Los cristales susurran. Los orbes cazan.<br>
+    Encuentra la luz antes de que la oscuridad te encuentre a ti."
   </div>
-  <p>Recolecta los <strong style="color:#00ffff">cristales azules</strong>.<br>Evita los <strong style="color:#ff3333">orbes rojos</strong>.</p>
-  <button id="startBtn">ENTRAR AL LABERINTO</button>
+  <div class="divider"></div>
+  <div class="instructions">
+    <div class="item"><span class="key">W A S D</span> Moverse</div>
+    <div class="item"><span class="key">RATÓN</span> Mirar</div>
+    <div class="item"><span class="key">SHIFT</span> Correr</div>
+    <div class="item"><span class="key">CLICK</span> Bloquear cursor</div>
+  </div>
+  <button id="start-btn">ENTRAR AL LABERINTO</button>
 </div>
 
+<div id="mobile-warning">⚠ Usa un teclado y ratón para la experiencia completa</div>
+
+<!-- ===== THREE.JS ===== -->
 <script type="importmap">
 {
   "imports": {
@@ -161,301 +475,670 @@
 <script type="module">
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 
-// ========== CONFIG ==========
-const MAZE_SIZE = 15;       // celdas por lado
-const CELL_SIZE = 4;         // tamaño de cada celda
-const WALL_HEIGHT = 4;
-const GAME_TIME = 90;
-const NUM_CRYSTALS = 6;
-const NUM_ENEMIES = 3;
+// ============================================================
+// CONFIGURACIÓN GLOBAL
+// ============================================================
+const CONFIG = {
+  MAZE_SIZE: 17,
+  CELL_SIZE: 4,
+  WALL_HEIGHT: 4.5,
+  GAME_TIME: 120,
+  NUM_CRYSTALS: 8,
+  NUM_ENEMIES: 4,
+  PLAYER_HEIGHT: 1.7,
+  PLAYER_RADIUS: 0.4,
+  WALK_SPEED: 4.5,
+  RUN_SPEED: 8.5,
+  STAMINA_MAX: 100,
+  STAMINA_DRAIN: 25,
+  STAMINA_REGEN: 15,
+  ENEMY_DAMAGE_TIME: 10,
+  ENEMY_DETECT_RANGE: 12,
+};
 
-// ========== ESCENA ==========
+// ============================================================
+// ESTADO DEL JUEGO
+// ============================================================
+const state = {
+  playing: false,
+  timeLeft: CONFIG.GAME_TIME,
+  collected: 0,
+  totalCrystals: 0,
+  stamina: CONFIG.STAMINA_MAX,
+  isRunning: false,
+  canTakeDamage: true,
+  gameStartTime: 0,
+  totalDamageTaken: 0,
+  enemiesTriggered: 0,
+};
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+const tempVec = new THREE.Vector3();
+const tempVec2 = new THREE.Vector3();
+const tempQuat = new THREE.Quaternion();
+const tempColor = new THREE.Color();
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function randRange(min, max) { return min + Math.random() * (max - min); }
+function dist2D(x1, z1, x2, z2) { return Math.hypot(x2 - x1, z2 - z1); }
+
+// ============================================================
+// ESCENA
+// ============================================================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x05050a);
-scene.fog = new THREE.FogExp2(0x05050a, 0.04);
+scene.background = new THREE.Color(0x030308);
+scene.fog = new THREE.FogExp2(0x030308, 0.035);
 
-const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 200);
-camera.position.set(2, 1.7, 2);
+// ============================================================
+// CÁMARA
+// ============================================================
+const camera = new THREE.PerspectiveCamera(
+  75,
+  innerWidth / innerHeight,
+  0.1,
+  200
+);
+camera.position.set(2, CONFIG.PLAYER_HEIGHT, 2);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+// ============================================================
+// RENDERER
+// ============================================================
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  powerPreference: 'high-performance',
+  stencil: false,
+});
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// ========== LUCES ==========
-// Luz ambiental tenue (casi oscuro)
-const ambient = new THREE.AmbientLight(0x202040, 0.3);
-scene.add(ambient);
+// ============================================================
+// POST-PROCESADO
+// ============================================================
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
 
-// Luz de la linterna (spotlight pegada a la cámara)
-const flashlight = new THREE.SpotLight(0xffffff, 4, 30, Math.PI / 6, 0.5, 1.5);
+// Bloom
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight),
+  0.8,   // strength
+  0.5,   // radius
+  0.85   // threshold
+);
+composer.addPass(bloomPass);
+
+// FXAA
+const fxaaPass = new ShaderPass(FXAAShader);
+const pixelRatio = renderer.getPixelRatio();
+fxaaPass.material.uniforms['resolution'].value.x = 1 / (innerWidth * pixelRatio);
+fxaaPass.material.uniforms['resolution'].value.y = 1 / (innerHeight * pixelRatio);
+composer.addPass(fxaaPass);
+
+// ============================================================
+// AUDIO ESPACIAL
+// ============================================================
+const audioListener = new THREE.AudioListener();
+camera.add(audioListener);
+const audioLoader = new THREE.AudioLoader();
+
+// Audio ambiente procedural (oscilador)
+function createAmbientDrone() {
+  const ctx = audioListener.context;
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  osc1.type = 'sine';
+  osc1.frequency.value = 55;
+  osc2.type = 'sine';
+  osc2.frequency.value = 82.5;
+
+  filter.type = 'lowpass';
+  filter.frequency.value = 200;
+
+  gain.gain.value = 0.04;
+
+  osc1.connect(filter);
+  osc2.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioListener.context.destination);
+
+  osc1.start();
+  osc2.start();
+
+  return { osc1, osc2, gain, filter };
+}
+let ambientDrone = null;
+
+// ============================================================
+// LUCES
+// ============================================================
+// Luz ambiental mínima
+const ambientLight = new THREE.AmbientLight(0x151525, 0.4);
+scene.add(ambientLight);
+
+// Luz hemisférica tenue
+const hemiLight = new THREE.HemisphereLight(0x223344, 0x080810, 0.3);
+scene.add(hemiLight);
+
+// Linterna (SpotLight pegada a cámara)
+const flashlight = new THREE.SpotLight(0xffeedd, 5, 35, Math.PI / 5.5, 0.6, 1.8);
 flashlight.castShadow = true;
-flashlight.shadow.mapSize.set(1024, 1024);
+flashlight.shadow.mapSize.set(2048, 2048);
 flashlight.shadow.camera.near = 0.5;
-flashlight.shadow.camera.far = 30;
+flashlight.shadow.camera.far = 35;
+flashlight.shadow.bias = -0.0005;
+flashlight.shadow.normalBias = 0.02;
 scene.add(flashlight);
 scene.add(flashlight.target);
 
-// Pequeña luz de relleno
-const fill = new THREE.PointLight(0x334455, 0.5, 10);
-scene.add(fill);
+// Luz de relleno muy tenue
+const fillLight = new THREE.PointLight(0x334455, 0.3, 8);
+scene.add(fillLight);
 
-// ========== GENERACIÓN DEL LABERINTO ==========
-// Algoritmo: laberinto perfecto con backtracking
+// ============================================================
+// GENERACIÓN DE LABERINTO
+// ============================================================
 function generateMaze(size) {
   const grid = Array(size).fill(0).map(() => Array(size).fill(1));
   const stack = [[1, 1]];
   grid[1][1] = 0;
-  const dirs = [[0,2],[0,-2],[2,0],[-2,0]];
+  const dirs = [[0, 2], [0, -2], [2, 0], [-2, 0]];
 
   while (stack.length) {
-    const [x, y] = stack[stack.length - 1];
+    const [x, z] = stack[stack.length - 1];
     const neighbors = [];
-    for (const [dx, dy] of dirs) {
-      const nx = x + dx, ny = y + dy;
-      if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && grid[nx][ny] === 1) {
-        neighbors.push([nx, ny, dx/2, dy/2]);
+    for (const [dx, dz] of dirs) {
+      const nx = x + dx, nz = z + dz;
+      if (nx > 0 && nx < size - 1 && nz > 0 && nz < size - 1 && grid[nx][nz] === 1) {
+        neighbors.push([nx, nz, dx / 2, dz / 2]);
       }
     }
     if (neighbors.length === 0) {
       stack.pop();
     } else {
-      const [nx, ny, mx, my] = neighbors[Math.floor(Math.random() * neighbors.length)];
-      grid[x + mx][y + my] = 0;
-      grid[nx][ny] = 0;
-      stack.push([nx, ny]);
+      const [nx, nz, mx, mz] = neighbors[Math.floor(Math.random() * neighbors.length)];
+      grid[x + mx][z + mz] = 0;
+      grid[nx][nz] = 0;
+      stack.push([nx, nz]);
     }
   }
   return grid;
 }
 
-const maze = generateMaze(MAZE_SIZE);
+const maze = generateMaze(CONFIG.MAZE_SIZE);
 
-// ========== MATERIALES ==========
-const wallMat = new THREE.MeshStandardMaterial({
-  color: 0x3a3a4a,
-  roughness: 0.85,
+// ============================================================
+// TEXTURAS PROCEDURALES
+// ============================================================
+function createNoiseTexture(size = 256, baseColor = [60, 60, 75]) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.createImageData(size, size);
+
+  for (let i = 0; i < size * size; i++) {
+    const x = i % size;
+    const y = Math.floor(i / size);
+    // Ruido multi-escala
+    const n1 = Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5 + 0.5;
+    const n2 = Math.sin(x * 0.37 + y * 0.21) * 0.3;
+    const n3 = Math.random() * 0.2;
+    const noise = clamp(n1 + n2 + n3, 0, 1);
+
+    imgData.data[i * 4] = baseColor[0] * noise + 10;
+    imgData.data[i * 4 + 1] = baseColor[1] * noise + 10;
+    imgData.data[i * 4 + 2] = baseColor[2] * noise + 15;
+    imgData.data[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  return tex;
+}
+
+function createNormalMap(size = 256) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.createImageData(size, size);
+
+  for (let i = 0; i < size * size; i++) {
+    const x = i % size;
+    const y = Math.floor(i / size);
+    // Gradiente de "relieve" falso
+    const nx = Math.sin(x * 0.3) * 0.5 + 0.5;
+    const ny = Math.cos(y * 0.3) * 0.5 + 0.5;
+    imgData.data[i * 4] = nx * 255;
+    imgData.data[i * 4 + 1] = ny * 255;
+    imgData.data[i * 4 + 2] = 255;
+    imgData.data[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+const wallNoiseTex = createNoiseTexture(256, [70, 70, 90]);
+const wallNormalTex = createNormalMap(256);
+const floorNoiseTex = createNoiseTexture(256, [30, 30, 40]);
+floorNoiseTex.repeat.set(8, 8);
+
+// ============================================================
+// MATERIALES PBR
+// ============================================================
+const wallMaterial = new THREE.MeshStandardMaterial({
+  color: 0x5a5a70,
+  map: wallNoiseTex,
+  normalMap: wallNormalTex,
+  normalScale: new THREE.Vector2(0.8, 0.8),
+  roughness: 0.75,
   metalness: 0.15,
+  envMapIntensity: 0.4,
 });
-const floorMat = new THREE.MeshStandardMaterial({
-  color: 0x1a1a22,
+
+const floorMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2a2a35,
+  map: floorNoiseTex,
   roughness: 0.9,
   metalness: 0.05,
+  envMapIntensity: 0.2,
 });
-const ceilMat = new THREE.MeshStandardMaterial({
-  color: 0x0f0f18,
+
+const ceilMaterial = new THREE.MeshStandardMaterial({
+  color: 0x151520,
   roughness: 1,
   metalness: 0,
 });
 
-// Suelo y techo
-const floorGeo = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
-const floor = new THREE.Mesh(floorGeo, floorMat);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-floor.position.set(MAZE_SIZE * CELL_SIZE / 2, 0, MAZE_SIZE * CELL_SIZE / 2);
-scene.add(floor);
+// ============================================================
+// CONSTRUCCIÓN DEL LABERINTO
+// ============================================================
+const wallBoxes = []; // Para colisiones
+const wallMeshes = [];
 
-const ceil = new THREE.Mesh(floorGeo, ceilMat);
-ceil.rotation.x = Math.PI / 2;
-ceil.position.set(MAZE_SIZE * CELL_SIZE / 2, WALL_HEIGHT, MAZE_SIZE * CELL_SIZE / 2);
-scene.add(ceil);
+// Suelo
+const floorGeo = new THREE.PlaneGeometry(
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE,
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE
+);
+const floorMesh = new THREE.Mesh(floorGeo, floorMaterial);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.receiveShadow = true;
+floorMesh.position.set(
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE / 2,
+  0,
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE / 2
+);
+scene.add(floorMesh);
 
-// Paredes
-const wallGeo = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
-const walls = []; // para colisiones
-for (let x = 0; x < MAZE_SIZE; x++) {
-  for (let z = 0; z < MAZE_SIZE; z++) {
+// Techo
+const ceilMesh = new THREE.Mesh(floorGeo, ceilMaterial);
+ceilMesh.rotation.x = Math.PI / 2;
+ceilMesh.position.set(
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE / 2,
+  CONFIG.WALL_HEIGHT,
+  CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE / 2
+);
+scene.add(ceilMesh);
+
+// Paredes (instanced para rendimiento)
+const wallGeo = new THREE.BoxGeometry(
+  CONFIG.CELL_SIZE,
+  CONFIG.WALL_HEIGHT,
+  CONFIG.CELL_SIZE
+);
+
+// Contar paredes
+let wallCount = 0;
+for (let x = 0; x < CONFIG.MAZE_SIZE; x++) {
+  for (let z = 0; z < CONFIG.MAZE_SIZE; z++) {
+    if (maze[x][z] === 1) wallCount++;
+  }
+}
+
+// InstancedMesh para paredes
+const wallInstanced = new THREE.InstancedMesh(wallGeo, wallMaterial, wallCount);
+wallInstanced.castShadow = true;
+wallInstanced.receiveShadow = true;
+scene.add(wallInstanced);
+
+const dummy = new THREE.Object3D();
+let wallIndex = 0;
+
+for (let x = 0; x < CONFIG.MAZE_SIZE; x++) {
+  for (let z = 0; z < CONFIG.MAZE_SIZE; z++) {
     if (maze[x][z] === 1) {
-      const wall = new THREE.Mesh(wallGeo, wallMat);
-      wall.position.set(x * CELL_SIZE + CELL_SIZE/2, WALL_HEIGHT/2, z * CELL_SIZE + CELL_SIZE/2);
-      wall.castShadow = true;
-      wall.receiveShadow = true;
-      scene.add(wall);
-      walls.push({ x: x * CELL_SIZE + CELL_SIZE/2, z: z * CELL_SIZE + CELL_SIZE/2 });
+      const wx = x * CONFIG.CELL_SIZE + CONFIG.CELL_SIZE / 2;
+      const wz = z * CONFIG.CELL_SIZE + CONFIG.CELL_SIZE / 2;
+
+      dummy.position.set(wx, CONFIG.WALL_HEIGHT / 2, wz);
+      dummy.updateMatrix();
+      wallInstanced.setMatrixAt(wallIndex++, dummy.matrix);
+
+      wallBoxes.push({
+        x: wx,
+        z: wz,
+        halfW: CONFIG.CELL_SIZE / 2,
+        halfD: CONFIG.CELL_SIZE / 2,
+      });
     }
   }
 }
 
-// ========== CRISTALES ==========
+// ============================================================
+// CRISTALES
+// ============================================================
 const crystals = [];
-const crystalGeo = new THREE.OctahedronGeometry(0.4, 0);
-const crystalMat = new THREE.MeshStandardMaterial({
+const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
+const crystalBaseMat = new THREE.MeshStandardMaterial({
   color: 0x00ffff,
-  emissive: 0x00aaff,
-  emissiveIntensity: 2,
-  metalness: 0.3,
-  roughness: 0.1,
+  emissive: 0x0088ff,
+  emissiveIntensity: 3,
+  metalness: 0.4,
+  roughness: 0.05,
   transparent: true,
-  opacity: 0.9,
+  opacity: 0.95,
 });
 
+// Partículas de cristal (pre-creadas para pooling)
+const crystalParticleGeo = new THREE.BufferGeometry();
+const particleCount = 20;
+const particlePositions = new Float32Array(particleCount * 3);
+crystalParticleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+// Pool de partículas
+const particlePool = [];
+const particleMat = new THREE.PointsMaterial({
+  color: 0x00ffff,
+  size: 0.15,
+  transparent: true,
+  opacity: 1,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+for (let i = 0; i < 5; i++) {
+  const points = new THREE.Points(crystalParticleGeo.clone(), particleMat.clone());
+  points.visible = false;
+  scene.add(points);
+  particlePool.push({
+    mesh: points,
+    active: false,
+    life: 0,
+    maxLife: 1.0,
+    velocities: [],
+  });
+}
+
+function spawnCrystalParticles(position) {
+  for (const p of particlePool) {
+    if (p.active) continue;
+    p.active = true;
+    p.life = p.maxLife;
+    p.mesh.visible = true;
+    p.mesh.position.copy(position);
+
+    const posAttr = p.mesh.geometry..gattributes.position;
+    p.velocities = [];
+    for (let i = 0; i < particleCount; i++) {
+      posAttr.setXYZ(i, 0, 0, 0);
+      p.velocities.push(new THREE.Vector3(
+        randRange(-2, 2),
+        randRange(0, 4),
+        randRange(-2, 2)
+      ));
+    }
+    posAttr.needsUpdate = true;
+    return;
+  }
+}
+
+// ============================================================
+// COLOCACIÓN DE CRISTALES
+// ============================================================
+function getFreeCells() {
+  const cells = [];
+  for (let x = 1; x < CONFIG.MAZE_SIZE - 1; x++) {
+    for (let z = 1; z < CONFIG.MAZE_SIZE - 1; z++) {
+      if (maze[x][z] === 0) {
+        cells.push({
+          x: x * CONFIG.CELL_SIZE + CONFIG.CELL_SIZE / 2,
+          z: z * CONFIG.CELL_SIZE + CONFIG.CELL_SIZE / 2,
+        });
+      }
+    }
+  }
+  return cells;
+}
+
+const freeCells = getFreeCells();
+
 function placeCrystals() {
+  const used = new Set();
   let placed = 0;
-  const maxTries = 200;
   let tries = 0;
-  while (placed < NUM_CRYSTALS && tries < maxTries) {
+
+  while (placed < CONFIG.NUM_CRYSTALS && tries < 500) {
     tries++;
-    const cx = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
-    const cz = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
-    if (maze[cx][cz] !== 0) continue;
-    if (cx === 1 && cz === 1) continue;
-    // distancia mínima entre cristales
-    const wx = cx * CELL_SIZE + CELL_SIZE/2;
-    const wz = cz * CELL_SIZE + CELL_SIZE/2;
-    if (crystals.some(c => Math.hypot(c.position.x - wx, c.position.z - wz) < 6)) continue;
+    const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
+    const key = `${cell.x},${cell.z}`;
 
-    const crystal = new THREE.Mesh(crystalGeo, crystalMat.clone());
-    crystal.position.set(wx, 1.2, wz);
+    if (used.has(key)) continue;
+    if (dist2D(cell.x, cell.z, 2, 2) < 5) continue;
+    if (crystals.some(c =>
+      dist2D(c.position.x, c.position.z, cell.x, cell.z) < 6
+    )) continue;
+
+    used.add(key);
+
+    const crystal = new THREE.Mesh(crystalGeo, crystalBaseMat.clone());
+    crystal.position.set(cell.x, 1.3, cell.z);
     crystal.castShadow = true;
-    crystal.userData = { baseY: 1.2, phase: Math.random() * Math.PI * 2, collected: false };
-    scene.add(crystal);
-    crystals.push(crystal);
+    crystal.userData = {
+      baseY: 1.3,
+      phase: Math.random() * Math.PI * 2,
+      collected: false,
+      light: null,
+      lightIntensity: 2,
+    };
 
-    // luz puntual en el cristal
-    const cLight = new THREE.PointLight(0x00ffff, 1.5, 8, 2);
+    // Luz propia del cristal (limitada para rendimiento)
+    const cLight = new THREE.PointLight(0x00ffff, 2, 7, 2);
     cLight.position.copy(crystal.position);
     scene.add(cLight);
     crystal.userData.light = cLight;
 
+    scene.add(crystal);
+    crystals.push(crystal);
     placed++;
   }
-  document.getElementById('total').textContent = crystals.length;
+  state.totalCrystals = crystals.length;
+  document.getElementById('crystal-total').textContent = crystals.length;
 }
-placeCrystals();
 
-// ========== ORBES ENEMIGOS ==========
+// ============================================================
+// ENEMIGOS (ORBES)
+// ============================================================
 const enemies = [];
-const enemyGeo = new THREE.SphereGeometry(0.5, 16, 16);
+const enemyGeo = new THREE.SphereGeometry(0.55, 20, 20);
 const enemyMat = new THREE.MeshStandardMaterial({
   color: 0xff2222,
   emissive: 0xff0000,
-  emissiveIntensity: 1.5,
-  metalness: 0.2,
-  roughness: 0.3,
+  emissiveIntensity: 2.5,
+  metalness: 0.3,
+  roughness: 0.2,
+});
+
+// Anillo de energía alrededor del enemigo
+const ringGeo = new THREE.TorusGeometry(0.8, 0.03, 8, 32);
+const ringMat = new THREE.MeshBasicMaterial({
+  color: 0xff4444,
+  transparent: true,
+  opacity: 0.6,
+  blending: THREE.AdditiveBlending,
 });
 
 function placeEnemies() {
   let placed = 0;
   let tries = 0;
-  while (placed < NUM_ENEMIES && tries < 200) {
+
+  while (placed < CONFIG.NUM_ENEMIES && tries < 500) {
     tries++;
-    const cx = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 2;
-    const cz = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 2;
-    if (maze[cx][cz] !== 0) continue;
-    const wx = cx * CELL_SIZE + CELL_SIZE/2;
-    const wz = cz * CELL_SIZE + CELL_SIZE/2;
-    if (Math.hypot(wx - 2, wz - 2) < 10) continue; // lejos del inicio
+    const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
+
+    if (dist2D(cell.x, cell.z, 2, 2) < 12) continue;
+    if (enemies.some(e =>
+      dist2D(e.position.x, e.position.z, cell.x, cell.z) < 8
+    )) continue;
 
     const orb = new THREE.Mesh(enemyGeo, enemyMat.clone());
-    orb.position.set(wx, 1.2, wz);
+    orb.position.set(cell.x, 1.3, cell.z);
     orb.castShadow = true;
-    orb.userData = { phase: Math.random() * Math.PI * 2 };
-    scene.add(orb);
 
-    const eLight = new THREE.PointLight(0xff0000, 2, 6, 2);
+    // Anillo
+    const ring = new THREE.Mesh(ringGeo, ringMat.clone());
+    ring.rotation.x = Math.PI / 2;
+    orb.add(ring);
+
+    // Luz del enemigo
+    const eLight = new THREE.PointLight(0xff0000, 2.5, 8, 2);
     eLight.position.copy(orb.position);
     scene.add(eLight);
-    orb.userData.light = eLight;
 
-    // dirección de patrulla aleatoria
-    orb.userData.angle = Math.random() * Math.PI * 2;
-    orb.userData.speed = 1.5 + Math.random();
+    orb.userData = {
+      phase: Math.random() * Math.PI * 2,
+      light: eLight,
+      ring: ring,
+      angle: Math.random() * Math.PI * 2,
+      speed: randRange(1.2, 2.0),
+      waypoint: null,
+      waypointTimer: 0,
+      chasing: false,
+    };
 
+    scene.add(orb);
     enemies.push(orb);
     placed++;
   }
 }
-placeEnemies();
 
-// ========== SALIDA ==========
-// Colocar salida en la esquina opuesta al inicio
-let exitPos = { x: (MAZE_SIZE - 2) * CELL_SIZE + CELL_SIZE/2, z: (MAZE_SIZE - 2) * CELL_SIZE + CELL_SIZE/2 };
-// buscar celda libre cerca
-for (let r = 0; r < 5; r++) {
-  for (let dx = -r; dx <= r; dx++) {
-    for (let dz = -r; dz <= r; dz++) {
-      const cx = MAZE_SIZE - 2 + dx, cz = MAZE_SIZE - 2 + dz;
-      if (cx > 0 && cx < MAZE_SIZE - 1 && cz > 0 && cz < MAZE_SIZE - 1 && maze[cx][cz] === 0) {
-        exitPos = { x: cx * CELL_SIZE + CELL_SIZE/2, z: cz * CELL_SIZE + CELL_SIZE/2 };
-        r = dz = dx = 999;
-        break;
-      }
+// ============================================================
+// SALIDA
+// ============================================================
+let exitPos = { x: 0, z: 0 };
+let exitRing, exitLight;
+
+function placeExit() {
+  // Buscar celda libre en la esquina opuesta
+  let bestCell = freeCells[0];
+  let bestDist = 0;
+
+  for (const cell of freeCells) {
+    const d = dist2D(cell.x, cell.z, 2, 2);
+    if (d > bestDist) {
+      bestDist = d;
+      bestCell = cell;
     }
   }
+
+  exitPos.x = bestCell.x;
+  exitPos.z = bestCell.z;
+
+  // Anillo de salida
+  const exitGeo = new THREE.TorusGeometry(1.2, 0.12, 16, 48);
+  const exitMat = new THREE.MeshStandardMaterial({
+    color: 0xffaa00,
+    emissive: 0xff6600,
+    emissiveIntensity: 4,
+    metalness: 0.5,
+    roughness: 0.1,
+  });
+  exitRing = new THREE.Mesh(exitGeo, exitMat);
+  exitRing.position.set(exitPos.x, 1.8, exitPos.z);
+  exitRing.rotation.x = Math.PI / 2;
+  scene.add(exitRing);
+
+  exitLight = new THREE.PointLight(0xff8800, 4, 15, 2);
+  exitLight.position.set(exitPos.x, 1.8, exitPos.z);
+  scene.add(exitLight);
+
+  // Partículas de salida
+  const exitParticlesGeo = new THREE.BufferGeometry();
+  const exitParticlesPos = new Float32Array(50 * 3);
+  for (let i = 0; i < 50; i++) {
+    exitParticlesPos[i * 3] = randRange(-1.5, 1.5);
+    exitParticlesPos[i * 3 + 1] = randRange(-1, 3);
+    exitParticlesPos[i * 3 + 2] = randRange(-1.5, 1.5);
+  }
+  exitParticlesGeo.setAttribute('position', new THREE.BufferAttribute(exitParticlesPos, 3));
+  const exitParticlesMat = new THREE.PointsMaterial({
+    color: 0xffaa00,
+    size: 0.08,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const exitParticles = new THREE.Points(exitParticlesGeo, exitParticlesMat);
+  exitParticles.position.set(exitPos.x, 1.8, exitPos.z);
+  scene.add(exitParticles);
+  exitRing.userData = { particles: exitParticles };
 }
 
-const exitGeo = new THREE.TorusGeometry(1, 0.15, 16, 32);
-const exitMat = new THREE.MeshStandardMaterial({
-  color: 0xffaa00,
-  emissive: 0xff6600,
-  emissiveIntensity: 3,
-});
-const exitRing = new THREE.Mesh(exitGeo, exitMat);
-exitRing.position.set(exitPos.x, 1.5, exitPos.z);
-exitRing.rotation.x = Math.PI / 2;
-scene.add(exitRing);
-const exitLight = new THREE.PointLight(0xff8800, 3, 12, 2);
-exitLight.position.set(exitPos.x, 1.5, exitPos.z);
-scene.add(exitLight);
-
-// ========== CONTROLES ==========
+// ============================================================
+// CONTROLES
+// ============================================================
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
 
-const startBtn = document.getElementById('startBtn');
-const overlay = document.getElementById('overlay');
-const hud = document.getElementById('hud');
-const timerEl = document.getElementById('timer');
-const objectiveEl = document.getElementById('objective');
-const crosshair = document.getElementById('crosshair');
-const damageEl = document.getElementById('damage');
-
-let playing = false;
-let timeLeft = GAME_TIME;
-let collected = 0;
-let canTakeDamage = true;
-
 const keys = {};
-document.addEventListener('keydown', e => keys[e.code] = true);
-document.addEventListener('keyup', e => keys[e.code] = false);
-
-startBtn.addEventListener('click', () => {
-  overlay.classList.add('hidden');
-  hud.classList.remove('hidden');
-  timerEl.classList.remove('hidden');
-  objectiveEl.classList.remove('hidden');
-  crosshair.classList.remove('hidden');
-  controls.lock();
-  playing = true;
-  lastTime = performance.now();
-  animate();
-});
-
-controls.addEventListener('lock', () => {
-  if (playing) {
-    crosshair.classList.remove('hidden');
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+    document.getElementById('stamina-container').classList.add('active');
   }
 });
-controls.addEventListener('unlock', () => {
-  if (playing) {
-    // no pausamos el juego, solo liberamos cursor
+document.addEventListener('keyup', e => {
+  keys[e.code] = false;
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+    setTimeout(() => {
+      if (!keys['ShiftLeft'] && !keys['ShiftRight']) {
+        document.getElementById('stamina-container').classList.remove('active');
+      }
+    }, 500);
   }
 });
 
-// ========== COLISIONES ==========
-const PLAYER_RADIUS = 0.4;
+// ============================================================
+// COLISIONES
+// ============================================================
 function checkCollision(x, z) {
-  for (const w of walls) {
-    const dx = Math.abs(x - w.x);
-    const dz = Math.abs(z - w.z);
-    const halfW = CELL_SIZE / 2;
-    if (dx < halfW + PLAYER_RADIUS && dz < halfW + PLAYER_RADIUS) {
+  for (const wall of wallBoxes) {
+    if (Math.abs(x - wall.x) < wall.halfW + CONFIG.PLAYER_RADIUS &&
+        Math.abs(z - wall.z) < wall.halfD + CONFIG.PLAYER_RADIUS) {
       return true;
     }
   }
@@ -463,36 +1146,274 @@ function checkCollision(x, z) {
 }
 
 function tryMove(newX, newZ) {
-  // mover eje X
   if (!checkCollision(newX, camera.position.z)) {
     camera.position.x = newX;
   }
-  // mover eje Z
   if (!checkCollision(camera.position.x, newZ)) {
     camera.position.z = newZ;
   }
 }
 
-// ========== LOOP ==========
-let lastTime = performance.now();
-const clock = new THREE.Clock();
+// ============================================================
+// MINIMAPA
+// ============================================================
+const minimapCanvas = document.getElementById('minimap-canvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+const MINIMAP_SIZE = 140;
+const MINIMAP_SCALE = MINIMAP_SIZE / (CONFIG.MAZE_SIZE * CONFIG.CELL_SIZE);
 
+function drawMinimap() {
+  const ctx = minimapCtx;
+  const size = MINIMAP_SIZE;
+
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = 'rgba(0, 10, 20, 0.9)';
+  ctx.fillRect(0, 0, size, size);
+
+  const cx = camera.position.x * MINIMAP_SCALE;
+  const cz = camera.position.z * MINIMAP_SCALE;
+
+  // Paredes
+  ctx.fillStyle = 'rgba(0, 255, 255, 0.15)';
+  for (let x = 0; x < CONFIG.MAZE_SIZE; x++) {
+    for (let z = 0; z < CONFIG.MAZE_SIZE; z++) {
+      if (maze[x][z] === 1) {
+        ctx.fillRect(
+          x * CONFIG.CELL_SIZE * MINIMAP_SCALE,
+          z * CONFIG.CELL_SIZE * MINIMAP_SCALE,
+          CONFIG.CELL_SIZE * MINIMAP_SCALE,
+          CONFIG.CELL_SIZE * MINIMAP_SCALE
+        );
+      }
+    }
+  }
+
+  // Cristales
+  ctx.fillStyle = '#00ffff';
+  for (const c of crystals) {
+    if (c.userData.collected) continue;
+    ctx.beginPath();
+    ctx.arc(
+      c.position.x * MINIMAP_SCALE,
+      c.position.z * MINIMAP_SCALE,
+      3, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  // Enemigos
+  ctx.fillStyle = '#ff2222';
+  for (const e of enemies) {
+    ctx.beginPath();
+    ctx.arc(
+      e.position.x * MINIMAP_SCALE,
+      e.position.z * MINIMAP_SCALE,
+      4, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  // Salida
+  if (state.collected === state.totalCrystals) {
+    ctx.fillStyle = '#ffaa00';
+    ctx.beginPath();
+    ctx.arc(
+      exitPos.x * MINIMAP_SCALE,
+      exitPos.z * MINIMAP_SCALE,
+      5, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  // Jugador (flecha)
+  ctx.save();
+  ctx.translate(cx, cz);
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  ctx.rotate(Math.atan2(dir.x, dir.z));
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(0, -6);
+  ctx.lineTo(-4, 4);
+  ctx.lineTo(4, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Borde circular
+  ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+// ============================================================
+// INDICADOR DE DIRECCIÓN
+// ============================================================
+function updateObjectiveArrow() {
+  const arrow = document.getElementById('objective-arrow');
+  const target = state.collected === state.totalCrystals
+    ? exitPos
+    : findNearestCrystal();
+
+  if (!target) {
+    arrow.textContent = '✓';
+    return;
+  }
+
+  const dx = target.x - camera.position.x;
+  const dz = target.z - camera.position.z;
+
+  const camDir = new THREE.Vector3();
+  camera.getWorldDirection(camDir);
+
+  const angle = Math.atan2(dx, dz) - Math.atan2(camDir.x, camDir.z);
+  const deg = (angle * 180 / Math.PI + 360) % 360;
+
+  arrow.style.transform = `rotate(${deg}deg)`;
+}
+
+function findNearestCrystal() {
+  let nearest = null;
+  let minDist = Infinity;
+  for (const c of crystals) {
+    if (c.userData.collected) continue;
+    const d = dist2D(camera.position.x, camera.position.z, c.position.x, c.position.z);
+    if (d < minDist) {
+      minDist = d;
+      nearest = c.position;
+    }
+  }
+  return nearest;
+}
+
+// ============================================================
+// HUD UPDATE
+// ============================================================
+const timerDisplay = document.getElementById('timer-display');
+const crystalCount = document.getElementById('crystal-count');
+const staminaFill = document.getElementById('stamina-fill');
+const damageOverlay = document.getElementById('damage-overlay');
+const objectiveDesc = document.getElementById('objective-desc');
+
+function updateHUD() {
+  timerDisplay.textContent = Math.ceil(state.timeLeft);
+  crystalCount.textContent = state.collected;
+
+  if (state.timeLeft < 20) {
+    timerDisplay.classList.add('warning');
+  } else {
+    timerDisplay.classList.remove('warning');
+  }
+
+  // Stamina
+  const pct = (state.stamina / CONFIG.STAMINA_MAX) * 100;
+  staminaFill.style.width = pct + '%';
+  if (pct < 30) {
+    staminaFill.classList.add('low');
+  } else {
+    staminaFill.classList.remove('low');
+  }
+
+  // Objective
+  if (state.collected === state.totalCrystals) {
+    objectiveDesc.textContent = '¡Encuentra la salida dorada!';
+  } else {
+    objectiveDesc.textContent = `Recolecta ${state.totalCrystals - state.collected} cristales más`;
+  }
+}
+
+// ============================================================
+// DAÑO
+// ============================================================
+function takeDamage() {
+  if (!state.canTakeDamage) return;
+  state.canTakeDamage = false;
+  state.timeLeft = Math.max(0, state.timeLeft - CONFIG.ENEMY_DAMAGE_TIME);
+  state.totalDamageTaken += CONFIG.ENEMY_DAMAGE_TIME;
+
+  damageOverlay.classList.add('active');
+  setTimeout(() => damageOverlay.classList.remove('active'), 300);
+
+  // Screen shake (simulado con FOV)
+  const originalFov = camera.fov;
+  camera.fov = originalFov + 5;
+  camera.updateProjectionMatrix();
+  setTimeout(() => {
+    camera.fov = originalFov;
+    camera.updateProjectionMatrix();
+  }, 150);
+
+  setTimeout(() => { state.canTakeDamage = true; }, 2000);
+}
+
+// ============================================================
+// INICIALIZACIÓN DEL JUEGO
+// ============================================================
+let clock, lastFrameTime = 0;
+
+function initGame() {
+  placeCrystals();
+  placeEnemies();
+  placeExit();
+
+  clock = new THREE.Clock();
+  state.playing = true;
+  state.gameStartTime = performance.now();
+  lastFrameTime = performance.now();
+
+  // Audio
+  try {
+    ambientDrone = createAmbientDrone();
+  } catch (e) {
+    console.warn('Audio no disponible:', e);
+  }
+
+  // UI
+  document.getElementById('overlay').classList.add('fade-out');
+  setTimeout(() => {
+    document.getElementById('overlay').style.display = 'none';
+  }, 800);
+  document.getElementById('hud').classList.add('active');
+  document.getElementById('crosshair').classList.add('active');
+
+  controls.lock();
+  animate();
+}
+
+// ============================================================
+// LOOP PRINCIPAL
+// ============================================================
 function animate() {
-  if (!playing) return;
+  if (!state.playing) return;
   requestAnimationFrame(animate);
 
   const dt = Math.min(clock.getDelta(), 0.1);
-  const now = performance.now();
+  const elapsed = clock.elapsedTime;
 
-  // ===== Movimiento jugador =====
-  const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 8 : 4;
+  // ===== MOVIMIENTO =====
+  const isShift = keys['ShiftLeft'] || keys['ShiftRight'];
+  state.isRunning = isShift && state.stamina > 0;
+
+  const speed = state.isRunning ? CONFIG.RUN_SPEED : CONFIG.WALK_SPEED;
+
+  // Stamina
+  if (state.isRunning) {
+    state.stamina = Math.max(0, state.stamina - CONFIG.STAMINA_DRAIN * dt);
+  } else {
+    state.stamina = Math.min(CONFIG.STAMINA_MAX, state.stamina + CONFIG.STAMINA_REGEN * dt);
+  }
+
+  // Movimiento
   const forward = new THREE.Vector3();
   camera.getWorldDirection(forward);
   forward.y = 0;
   forward.normalize();
+
   const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0));
 
-  let moveVec = new THREE.Vector3();
+  const moveVec = new THREE.Vector3();
   if (keys['KeyW']) moveVec.add(forward);
   if (keys['KeyS']) moveVec.sub(forward);
   if (keys['KeyD']) moveVec.add(right);
@@ -503,134 +1424,305 @@ function animate() {
     tryMove(camera.position.x + moveVec.x, camera.position.z + moveVec.z);
   }
 
-  // ===== Linterna pegada a cámara =====
+  // Head bob (sutil)
+  const bobAmount = moveVec.lengthSq() > 0 ? 0.03 : 0;
+  const bobFreq = state.isRunning ? 14 : 9;
+  const bobOffset = Math.sin(elapsed * bobFreq) * bobAmount;
+  camera.position.y = CONFIG.PLAYER_HEIGHT + bobOffset;
+
+  // ===== LINTERNA =====
   flashlight.position.copy(camera.position);
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
-  flashlight.target.position.copy(camera.position).add(dir.multiplyScalar(10));
+  flashlight.target.position.copy(camera.position).add(dir.multiplyScalar(15));
   flashlight.target.updateMatrixWorld();
-  fill.position.copy(camera.position);
+  fillLight.position.copy(camera.position);
 
-  // ===== Animación cristales =====
-  const t = clock.elapsedTime;
+  // ===== CRISTALES =====
   for (const c of crystals) {
     if (c.userData.collected) continue;
-    c.position.y = c.userData.baseY + Math.sin(t * 2 + c.userData.phase) * 0.2;
+
+    c.position.y = c.userData.baseY + Math.sin(elapsed * 2 + c.userData.phase) * 0.25;
     c.rotation.y += dt * 2;
-    c.rotation.x += dt * 0.5;
+    c.rotation.x += dt * 0.7;
+
+    // Pulso de luz
+    c.userData.lightIntensity = 2 + Math.sin(elapsed * 3 + c.userData.phase) * 0.8;
+    c.userData.light.intensity = c.userData.lightIntensity;
     c.userData.light.position.copy(c.position);
 
-    // recoger si está cerca
-    const dist = Math.hypot(camera.position.x - c.position.x, camera.position.z - c.position.z);
-    if (dist < 1.2) {
+    // Recoger
+    const d = dist2D(camera.position.x, camera.position.z, c.position.x, c.position.z);
+    if (d < 1.3) {
       c.userData.collected = true;
       c.visible = false;
       c.userData.light.visible = false;
-      collected++;
-      document.getElementById('crystals').textContent = collected;
-      if (collected === crystals.length) {
-        objectiveEl.textContent = '¡Todos los cristales! Encuentra la salida ➤';
-        objectiveEl.style.color = '#ffaa00';
-      }
+
+      state.collected++;
+      spawnCrystalParticles(c.position);
+
+      // Sonido de recogida (beep)
+      try {
+        const ctx = audioListener.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (e) { /* silencio */ }
     }
   }
 
-  // ===== Enemigos (patrullan por celdas libres) =====
-  for (const e of enemies) {
-    e.position.y = 1.2 + Math.sin(t * 2 + e.userData.phase) * 0.15;
-    e.rotation.y += dt;
+  // ===== PARTÍCULAS =====
+  for (const p of particlePool) {
+    if (!p.active) continue;
+    p.life -= dt;
+    if (p.life <= 0) {
+      p.active = false;
+      p.mesh.visible = false;
+      continue;
+    }
+    const posAttr = p.mesh.geometry.attributes.position;
+    for (let i = 0; i < particleCount; i++) {
+      const v = p.velocities[i];
+      posAttr.setXYZ(
+        i,
+        posAttr.getX(i) + v.x * dt,
+        posAttr.getY(i) + v.y * dt,
+        posAttr.getZ(i) + v.z * dt
+      );
+      v.y -= 9.8 * dt; // gravedad
+    }
+    posAttr.needsUpdate = true;
+    p.mesh.material.opacity = p.life / p.maxLife;
+  }
 
-    // movimiento simple: avanzar en una dirección, cambiar si choca
-    const dx = Math.cos(e.userData.angle) * e.userData.speed * dt;
-    const dz = Math.sin(e.userData.angle) * e.userData.speed * dt;
+  // ===== ENEMIGOS =====
+  for (const e of enemies) {
+    e.position.y = 1.3 + Math.sin(elapsed * 2.5 + e.userData.phase) * 0.2;
+    e.rotation.y += dt * 1.5;
+    e.userData.ring.rotation.z += dt * 2;
+    e.userData.light.position.copy(e.position);
+
+    // Detección de jugador
+    const dToPlayer = dist2D(camera.position.x, camera.position.z, e.position.x, e.position.z);
+    const wasChasing = e.userData.chasing;
+    e.userData.chasing = dToPlayer < CONFIG.ENEMY_DETECT_RANGE;
+
+    if (e.userData.chasing && !wasChasing) {
+      state.enemiesTriggered++;
+      // Sonido de alarma
+      try {
+        const ctx = audioListener.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(440, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      } catch (err) { /* silencio */ }
+    }
+
+    // Movimiento
+    let targetAngle = e.userData.angle;
+    if (e.userData.chasing) {
+      // Perseguir al jugador
+      targetAngle = Math.atan2(
+        camera.position.x - e.position.x,
+        camera.position.z - e.position.z
+      );
+    }
+
+    // Interpolar ángulo suavemente
+    let angleDiff = targetAngle - e.userData.angle;
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    e.userData.angle += angleDiff * dt * 2;
+
+    const speedMul = e.userData.chasing ? 2.2 : 1;
+    const dx = Math.sin(e.userData.angle) * e.userData.speed * speedMul * dt;
+    const dz = Math.cos(e.userData.angle) * e.userData.speed * speedMul * dt;
+
     const nx = e.position.x + dx;
     const nz = e.position.z + dz;
 
     if (checkCollision(nx, nz)) {
-      e.userData.angle += Math.PI / 2 + Math.random();
+      e.userData.angle += Math.PI / 2 + Math.random() * Math.PI;
     } else {
       e.position.x = nx;
       e.position.z = nz;
     }
-    e.userData.light.position.copy(e.position);
 
-    // daño
-    const dist = Math.hypot(camera.position.x - e.position.x, camera.position.z - e.position.z);
-    if (dist < 1.5 && canTakeDamage) {
+    // Daño
+    if (dToPlayer < 1.5) {
       takeDamage();
     }
   }
 
-  // ===== Salida =====
-  exitRing.rotation.z += dt * 2;
-  const exitDist = Math.hypot(camera.position.x - exitPos.x, camera.position.z - exitPos.z);
-  if (exitDist < 2 && collected === crystals.length) {
-    winGame();
+  // ===== SALIDA =====
+  if (exitRing) {
+    exitRing.rotation.z += dt * 1.5;
+    exitRing.userData.particles.rotation.y += dt * 0.5;
+    exitLight.intensity = 4 + Math.sin(elapsed * 4) * 1.5;
+
+    if (state.collected === state.totalCrystals) {
+      const d = dist2D(camera.position.x, camera.position.z, exitPos.x, exitPos.z);
+      if (d < 1.8) {
+        winGame();
+        return;
+      }
+    }
+  }
+
+  // ===== TIMER =====
+  state.timeLeft -= dt;
+  if (state.timeLeft <= 0) {
+    state.timeLeft = 0;
+    updateHUD();
+    loseGame('El tiempo se agotó');
     return;
   }
 
-  // ===== Timer =====
-  timeLeft -= dt;
-  if (timeLeft <= 0) {
-    timeLeft = 0;
-    timerEl.textContent = '0';
-    loseGame('Se acabó el tiempo');
-    return;
-  }
-  timerEl.textContent = Math.ceil(timeLeft);
-  if (timeLeft < 20) timerEl.style.color = '#ff0000';
-  else timerEl.style.color = '#ff4444';
+  // ===== HUD =====
+  updateHUD();
+  drawMinimap();
+  updateObjectiveArrow();
 
-  renderer.render(scene, camera);
+  // ===== RENDER =====
+  composer.render();
 }
 
-function takeDamage() {
-  if (!canTakeDamage) return;
-  canTakeDamage = false;
-  timeLeft -= 8;
-  damageEl.style.opacity = '1';
-  setTimeout(() => { damageEl.style.opacity = '0'; }, 200);
-  setTimeout(() => { canTakeDamage = true; }, 1500);
-}
-
+// ============================================================
+// FIN DEL JUEGO
+// ============================================================
 function winGame() {
-  playing = false;
+  state.playing = false;
   controls.unlock();
-  overlay.innerHTML = `
-    <h1 style="background: linear-gradient(90deg, #00ff88, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">¡ESCAPASTE!</h1>
-    <p>Recolectaste ${collected} cristales</p>
-    <p>Tiempo restante: ${Math.ceil(timeLeft)}s</p>
-    <button onclick="location.reload()">Jugar de nuevo</button>
+
+  if (ambientDrone) {
+    try {
+      ambientDrone.gainain.setValueAtTime(0, audioListener.context.currentTime);
+    } catch (e) {}
+  }
+
+  const elapsed = Math.floor((performance.now() - state.gameStartTime) / 1000);
+
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlay').classList.remove('fade-out');
+  document.getElementById('overlay').innerHTML = `
+    <h1 style="background: linear-gradient(135deg, #00ff88, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(0,255,136,0.6));">ESCAPASTE</h1>
+    <div class="subtitle">VICTORIA</div>
+    <div class="divider"></div>
+    <div class="stats-grid">
+      <div class="stat-label">Tiempo restante</div>
+      <div class="stat-value gold">${Math.ceil(state.timeLeft)}s</div>
+      <div class="stat-label">Tiempo total</div>
+      <div class="stat-value">${elapsed}s</div>
+      <div class="stat-label">Cristales</div>
+      <div class="stat-value">${state.collected}/${state.totalCrystals}</div>
+      <div class="stat-label">Daño recibido</div>
+      <div class="stat-value">${state.totalDamageTaken}s</div>
+    </div>
+    <button onclick="location.reload()">JUGAR DE NUEVO</button>
   `;
-  overlay.classList.remove('hidden');
-  hud.classList.add('hidden');
-  timerEl.classList.add('hidden');
-  objectiveEl.classList.add('hidden');
-  crosshair.classList.add('hidden');
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('crosshair').classList.remove('active');
 }
 
 function loseGame(reason) {
-  playing = false;
+  state.playing = false;
   controls.unlock();
-  overlay.innerHTML = `
-    <h1 style="background: linear-gradient(90deg, #ff0000, #ff8800); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">DERROTA</h1>
-    <p>${reason}</p>
-    <p>Cristales: ${collected} / ${crystals.length}</p>
-    <button onclick="location.reload()">Reintentar</button>
+
+  if (ambientDrone) {
+    try {
+      ambientDrone.gain.gain.setValueAtTime(0, audioListener.context.currentTime);
+    } catch (e) {}
+  }
+
+  const elapsed = Math.floor((performance.now() - state.gameStartTime) / 1000);
+
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlay').classList.remove('fade-out');
+  document.getElementById('overlay').innerHTML = `
+    <h1 style="background: linear-gradient(135deg, #ff0000, #ff8800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(255,0,0,0.6));">DERROTA</h1>
+    <div class="subtitle">${reason}</div>
+    <div class="divider"></div>
+    <div class="stats-grid">
+      <div class="stat-label">Cristales</div>
+      <div class="stat-value">${state.collected}/${state.totalCrystals}</div>
+      <div class="stat-label">Tiempo sobrevivido</div>
+      <div class="stat-value">${elapsed}s</div>
+      <div class="stat-label">Daño recibido</div>
+      <div class="stat-value">${state.totalDamageTaken}s</div>
+      <div class="stat-label">Enemigos alertados</div>
+      <div class="stat-value">${state.enemiesTriggered}</div>
+    </div>
+    <button onclick="location.reload()">REINTENTAR</button>
   `;
-  overlay.classList.remove('hidden');
-  hud.classList.add('hidden');
-  timerEl.classList.add('hidden');
-  objectiveEl.classList.add('hidden');
-  crosshair.classList.add('hidden');
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('crosshair').classList.remove('active');
 }
 
-// ===== Resize =====
+// ============================================================
+// EVENTOS
+// ============================================================
+document.getElementById('start-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  initGame();
+});
+
+// Prevenir menú contextual
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Resize
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  const pr = renderer.getPixelRatio();
+  fxaaPass.material.uniforms['resolution'].value.x = 1 / (innerWidth * pr);
+  fxaaPass.material.uniforms['resolution'].value.y = 1 / (innerHeight * pr);
 });
+
+// ============================================================
+// SIMULACIÓN DE CARGA
+// ============================================================
+const loadBar = document.getElementById('load-bar');
+let loadProgress = 0;
+const loadInterval = setInterval(() => {
+  loadProgress += randRange(15, 30);
+  if (loadProgress >= 100) {
+    loadProgress = 100;
+    clearInterval(loadInterval);
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+      }, 500);
+    }, 300);
+  }
+  loadBar.style.width = loadProgress + '%';
+}, 150);
+
+// Detectar móvil
+if (/Mobi|Android/i.test(navigator.userAgent)) {
+  document.getElementById('mobile-warning').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('mobile-warning').style.display = 'none';
+  }, 5000);
+}
 </script>
 </body>
 </html>
