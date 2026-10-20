@@ -3,394 +3,470 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Blox Fruits - Dragon LVL 0 a 2800</title>
+<title>Blox Fruits - 3D Realista & Dragón</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: 'Trebuchet MS', sans-serif; }
-  body { overflow: hidden; background: #87CEEB; width: 100vw; height: 100vh; touch-action: none; }
+  body { overflow: hidden; background: #000; width: 100vw; height: 100vh; touch-action: none; }
   
-  /* ===== PANTALLA DE SELECCIÓN ===== */
-  #menu-screen {
+  /* MENÚ DE INICIO */
+  #menu {
     position: fixed; inset: 0; z-index: 100;
-    background: linear-gradient(135deg, #2c3e50, #000);
+    background: url('https://images.unsplash.com/photo-1505118380757-91f5f5632de0?q=80&w=2000&auto=format&fit=crop') center/cover;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: opacity 0.5s;
   }
-  .menu-title { background: rgba(0,0,0,0.8); color: white; padding: 10px 40px; font-size: 24px; font-weight: bold; border-radius: 8px; margin-bottom: 20px; border: 2px solid #ff0000; }
-  .cards-container { display: flex; gap: 20px; align-items: center; justify-content: center; width: 90%; max-width: 800px; }
-  .card {
-    width: 45%; max-width: 300px; border: 4px solid; border-radius: 10px;
-    display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: #111;
+  #menu::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+  .menu-box {
+    position: relative; z-index: 2; text-align: center;
+    background: rgba(10,20,30,0.8); padding: 40px 60px; border-radius: 15px;
+    border: 2px solid #00ffff; box-shadow: 0 0 50px rgba(0,255,255,0.3);
   }
-  .card:hover { transform: scale(1.05); }
-  .card-pirate { border-color: #ff3333; }
-  .card-marine { border-color: #3388ff; }
-  .card-header { height: 150px; background-size: cover; background-position: center; border-bottom: 2px solid #333; }
-  .card-title { font-size: 24px; font-weight: 900; color: white; text-align: center; text-shadow: 2px 2px 0 #000; padding: 10px 0; }
-  .vs-text { font-size: 36px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000; font-style: italic; }
+  .menu-box h1 { color: #fff; font-size: 40px; text-shadow: 0 0 20px #00ffff; margin-bottom: 10px; }
+  .menu-box p { color: #aaa; margin-bottom: 30px; }
+  .menu-btn {
+    background: linear-gradient(45deg, #00ffff, #0088ff); border: none;
+    padding: 15px 40px; font-size: 20px; font-weight: bold; color: #000;
+    border-radius: 8px; cursor: pointer; text-transform: uppercase;
+    box-shadow: 0 5px 15px rgba(0,255,255,0.4); transition: 0.2s;
+  }
+  .menu-btn:hover { transform: scale(1.05); }
 
-  /* ===== HUD DE JUEGO ===== */
-  #game-ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: none; }
+  /* HUD */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: none; }
   
-  .top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; }
-  .menu-btn { background: #ffcc00; color: #000; font-weight: bold; border: 2px solid #fff; border-radius: 4px; padding: 5px 20px; font-size: 14px; box-shadow: 0 2-betweenpx 5px #000; }
+  .top-left { position: absolute; top: 20px; left: 20px; text-shadow: 2px 2px 4px #000; }
+  .lvl-text { color: #fff; font-size: 24px; font-weight: bold; }
+  .xp-bg { width: 200px; height: 14px; background: rgba(0,0,0,0.7); border: 2px solid #333; border-radius: 7px; margin-top: 5px; overflow: hidden; position: relative; }
+  .xp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #a000ff, #ff00ff); transition: width 0.3s; }
+  .xp-txt { position: absolute; inset: 0; text-align: center; font-size: 10px; color: white; line-height: 10px; font-weight: bold; }
+  .money-text { color: #00ff00; font-size: 20px; font-weight: bold; margin-top: 5px; }
+
+  .bottom-center { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; }
+  .bars { display: flex; gap: 10px; margin-bottom: 10px; }
+  .bar { flex: 1; height: 30px; background: rgba(0,0,0,0.7); border: 2px solid #222; border-radius: 5px; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+  .hp-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ff55, #00aa00); transition: width 0.3s; }
+  .en-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ffff, #0088ff); transition: width 0.3s; }
+  .bar-txt { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; color: #fff; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+
+  .skills { display: flex; gap: 5px; justify-content: center; }
+  .slot { width: 50px; height: 50px; background: rgba(0,0,0,0.7); border: 2px solid #444; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .slot.active { border-color: #00ffff; box-shadow: 0 0 15px #00ffff; background: rgba(0,255,255,0.2); }
+
+  /* Controles Táctiles */
+  .joystick { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: auto; }
+  .knob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; background: rgba(0,255,255,0.5); border: 2px solid #fff; border-radius: 50%; }
   
-  /* Info; Jugador */
-  .player-info align-items: { position: absolute; top: center 50px; left: 15px; display: flex; flex-direction: column; gap: 4px; text-shadow: 2px 2px 0 #000; }
-  .level-txt { color: white; font-size: 18px; font-weight: bold; }
-  .xp-bar-bg { width: 160px; height: 12px; background: #222; border: 2px solid #000; border-radius: 4px; position: relative; overflow: hidden; }
-  .xp-bar-fill { width: 0%; height: 100%; background: #a000ff; transition: width 0.2s; }
-  .xp-text { position: absolute; top: -2px; width: 100%; text-align: center; font-size: 9px; color: white; font-weight: bold; }
-  .money-txt { color: #00ff00; font-size: 18px; font-weight: bold; }
+  .actions { position: absolute; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
+  .btn { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; }
+  .btn-jump { background: rgba(0,150,255,0.6); }
+  .btn-dragon { background: rgba(255,68,0,0.8); border-color: #ffaa00; display: none; }
+  .btn-dragon.active { display: flex; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,68,0,0.7); } 70% { box-shadow: 0 0 0 20px rgba(255,68,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,68,0,0); } }
 
-  /* Barras Salud / Energía */
-  .stats-container { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; width: 90%; max-width: 450px; }
-  .stat-bar { flex: 1; height: 28px; border: 2px solid #000; border-radius: 4px; position: relative; background: #333; box-shadow: 0 3px 0 #000; overflow: hidden; }
-  .health-fill { width: 100%; height: 100%; background: #33ff33; transition: width 0.2s; }
-  .energy-fill { width: 100%; height: 100%; background: #33ffff; transition: width 0.2s; }
-  .stat-text { position: absolute; inset: 0; display: flex; justify-content: space; padding: 0 8px; color: white; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
-
-  /* Habilidades */
-  .skills-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; }
-  .skill-slot { width: 50px; height: 50px; background: #222; border: 2px solid #555; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 3px 0 #000; }
-  .skill-slot.active { border-color: #fff; background: #444; box-shadow: 0 0 10px #fff; }
-
-  /* Joystick */
-  .joystick-area { position: absolute; bottom: 20px; left: 20px; width: 120px; height: 120px; background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; }
-  .joystick-knob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.8); border-radius: 50%; }
-  
-  /* Botón Salto / Dragón */
-  .action-btns { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
-  .jump-btn, .dragon-btn { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; box-shadow: 0 4px 0 rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.6); cursor: pointer; }
-  .jump-btn { background: rgba(0,0,0,0.4); }
-  .dragon-btn { background: rgba(255, 68, 0, 0.6); font-size: 36px; }
-  .jump-btn:active, .dragon-btn:active { transform: translateY(4px); box-shadow: none; }
-
-  #notification { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; opacity: 0; transition: opacity 0.5s; pointer-events: none; border: 2px solid #ff0000; text-align: center; }
+  /* Fruta en el suelo */
+  #fruit-prompt { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); color: #ff4400; font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #000; display: none; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 10px; border: 2px solid #ff4400; }
 </style>
 </head>
 <body>
 
-<div id="menu-screen">
-  <div class="menu-title">Pick A Side!</div>
-  <div class="cards-container">
-    <div class="card card-pirate" onclick="startGame('Piratas')">
-      <div class="card-header" style="background-image: url('https://tr.rbxcdn.com/180DAY-7b96ff082e900c48d01017011316fdb9/420/420/Image/Png/noFilter');"></div>
-      <div class="card-title">PIRATAS</div>
-    </div>
-    <div class="vs-text">VS</div>
-    <div class="card card-marine" onclick="startGame('Marinas')">
-      <div class="card-header" style="background-image: url('https://tr.rbxcdn.com/180DAY-8f5b75f9c0e6c2f3a5c9455fb0b4f1a1/420/420/Image/Png/noFilter');"></div>
-      <div class="card-title">MARINAS</div>
-    </div>
+<div id="menu">
+  <div class="menu-box">
+    <h1>BLOX FRUITS 3D</h1>
+    <p>Encuentra la Fruta Dragón y domina el cielo</p>
+    <button class="menu-btn" onclick="startGame()">ENTRAR AL MUNDO</button>
   </div>
 </div>
 
-<div id="game-ui">
-  <div class="top-bar"><div class="menu-btn">Menú</div></div>
-  
-  <div class="player-info">
-    <div class="level-txt" id="lvl-text">Lv. 0 / 2800</div>
-    <div class="xp-bar-bg">
-      <div class="xp-bar-fill" id="xp-fill"></div>
-      <div class="xp-text" id="xp-text">0 / 100 XP</div>
-    </div>
-    <div class="money-txt" id="money-text">$ 0</div>
+<div id="hud">
+  <div class="top-left">
+    <div class="lvl-text" id="ui-lvl">Lv. 0 / 2800</div>
+    <div class="xp-bg"><div class="xp-fill" id="ui-xp"></div><div class="xp-txt" id="ui-xp-txt">0 / 100 XP</div></div>
+    <div class="money-text" id="ui-money">$ 0</div>
   </div>
 
-  <div id="notification"></div>
+  <div id="fruit-prompt">¡Has obtenido la Fruta Dragón! 🐉</div>
 
-  <div class="stats-container">
-    <div class="stat-bar">
-      <div class="health-fill" id="hp-fill"></div>
-      <div class="stat-text"><span>Salud</span><span id="hp-val">100/100</span></div>
+  <div class="bottom-center">
+    <div class="bars">
+      <div class="bar"><div class="hp-fill" id="ui-hp"></div><div class="bar-txt"><span>Salud</span><span id="ui-hp-val">1000/1000</span></div></div>
+      <div class="bar"><div class="en-fill" id="ui-en"></div><div class="bar-txt"><span>Energy</span><span id="ui-en-val">1000/1000</span></div></div>
     </div>
-    <div class="stat-bar">
-      <div class="energy-fill" id="en-fill"></div>
-      <div class="stat-text"><span>Energy</span><span id="en-val">100/100</span></div>
+    <div class="skills">
+      <div class="slot active" style="color:#00ffff;">✋</div>
+      <div class="slot" style="color:#ff00ff;">☠️</div>
+      <div class="slot" id="ui-slot-dragon" style="color:#ff4400; opacity:0.3;">🐉</div>
+      <div class="slot">⚔️</div>
     </div>
   </div>
 
-  <div class="skills-container">
-    <div class="skill-slot active" style="color:#00ffff;">✋</div>
-    <div class="skill-slot" style="color:#ff00ff;">☠️</div>
-    <div class="skill-slot" id="dragon-skill" style="color:#ff4400; opacity:0.3;">🐉</div>
-    <div class="skill-slot">⚔️</div>
-    <div class="skill-slot">➕</div>
-  </div>
-
-  <div class="joystick-area" id="joystick">
-    <div class="joystick-knob" id="knob"></div>
-  </div>
-  
-  <div class="action-btns">
-    <div class="dragon-btn" id="dragon-btn">🐉</div>
-    <div class="jump-btn" id="jump-btn">▲</div>
+  <div class="joystick" id="joy"><div class="knob" id="knob"></div></div>
+  <div class="actions">
+    <div class="btn btn-dragon" id="btn-dragon" onclick="useDragon()">🐉</div>
+    <div class="btn btn-jump" id="btn-jump" onclick="jump()">▲</div>
   </div>
 </div>
 
-<!-- Three.js Clásico -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 
-<script>
-let scene, camera, renderer, player, clock;
-let state = {
-  playing: false,
-  lvl: 0,
-  maxLvl: 2800,
-  xp: 0,
-  xpNext: 100,
-  money: 0,
-  hp: 100,
-  maxHp: 100,
-  en: 100,
-  maxEn: 100,
-  hasDragon: false,
-  // Movimiento
-  x: 0, z: 0, y: 0, rotY: 0,
-  velY: 0, isJumping: false,
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// Variables globales
+let scene, camera, renderer, clock;
+let player, playerMixer;
+let dragonFruit, dragonModel, dragonMixer;
+let fireParticles = [];
+let isFruitCollected = false;
+let isDragonActive = false;
+
+// Estado del jugador
+const S = {
+  playing: false, lvl: 0, maxLvl: 2800, xp: 0, xpNext: 100, money: 0,
+  hp: 1000, maxHp: 1000, en: 1000, maxEn: 1000,
+  velY:Mapping 0, isJumping: false, isMoving: false,
   joyX: 0, joyY: 0
 };
 
-// Inicializar Three.js
-function init3D() {
+// Iniciar
+window.startGame = function() {
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('hud').style.display = 'block';
+  S.playing = true;
+  clock = new THREE.Clock();
+  animate();
+};
+
+// Configurar Escena 3D Realista
+function initScene() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87CEEB);
-  scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
+  // Cielo realista (atardecer)
+  scene.background = new THREE.Color(0x1a2b3c);
+  scene.fog = new THREE.FogExp2(0x1a2b3c, 0.005);
 
-  camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 500);
-  camera.position.set(0, 15, 15);
-  camera.lookAt(0, 2, 0);
-
+  camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneExposure = 1.2;
   document.body.appendChild(renderer.domElement);
 
   // Luces
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+  const hemi = new THREE.HemisphereLight(0x88bbff, 0x443322, 1.0);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-  sun.position.set(20, 40, 20);
+  
+  const sun = new THREE.DirectionalLight(0xffddbb, 2);
+  sun.position.set(50, 100, 50);
   sun.castShadow = true;
-  sun.shadow.camera.left = -50; sun.shadow.camera.right = 50;
-  sun.shadow.camera.top = 50; sun.shadow.camera.bottom = -50;
+  sun.shadow.mapSize.width = 2048;
+  sun.shadow.mapSize.height = 2048;
+  sun.shadow.camera.near = 0.5;
+  sun.shadow.camera.far = 500;
+  sun.shadow.camera.left = -100;
+  sun.shadow.camera.right = 100;
+  sun.shadow.camera.top = 100;
+  sun.shadow.camera.bottom = -100;
   scene.add(sun);
 
-  // Suelo
-  const floorGeo = new THREE.PlaneGeometry(200, 200);
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0x7cba5c });
-  const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  // Agua Realista (Textura animada procedural)
+  const waterGeo = new THREE.PlaneGeometry(2000, 2000, 64, 64);
+  const waterMat = new THREE.MeshStandardMaterial({
+    color: 0x004488, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0.9
+  });
+  const water = new THREE.Mesh(waterGeo, waterMat);
+  water.rotation.x = -Math.PI / 2;
+  water.position.y = -1;
+  water.receiveShadow = true;
+  scene.add(water);
 
-  // Camino de tierra
-  const pathGeo = new THREE.PlaneGeometry(200, 20);
-  const pathMat = new THREE.MeshStandardMaterial({ color: 0xd4b88a });
-  const path = new THREE.Mesh(pathGeo, pathMat);
-  path.rotation.x = -Math.PI / 2;
-  path.position.y = 0.01;
-  path.receiveShadow = true;
-  scene.add(path);
+  // Isla de Arena
+  const islandGeo = new THREE.CylinderGeometry(40, 45, 4, 32);
+  const islandMat = new THREE.MeshStandardMaterial({ color: 0xd4b88a, roughness: 0.9 });
+  const island = new THREE.Mesh(islandGeo, islandMat);
+  island.position.y = 0;
+  island.receiveShadow = true;
+  scene.add(island);
 
-  // Generar Edificios (estilo bloques)
-  const colors = [0xff9999, 0x99ff99, 0x9999ff, 0xffff99, 0xffcc99];
-  for(let i=0; i<15; i++) {
-    let w = 5 + Math.random() * 8, h = 10 + Math.random() * 15, d = 5 + Math.random() * 8;
-    let x = (Math.random() - 0.5) * 80;
-    let z = (Math.random() - 0.5) * 80;
-    if (Math.abs(x) < 15 && Math.abs(z) < 15) { x += x > 0 ? 20 : -20; }
+  // Cargar Modelos GLTF (.glb)
+  const loader = new GLTFLoader();
+
+  // 1. Cargar Personaje
+  loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', (gltf) => {
+    player = gltf.scene;
+    player.traverse(child => { if(child.isMesh) child.castShadow = true; });
+    player.position.set(0, 1, 0);
+    player.scale.set(1.5, 1.5, 1.5); // Hacerlo más grande
+    scene.add(player);
     
-    const bGeo = new THREE.BoxGeometry(w, h, d);
-    const bMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
-    const b = new THREE.Mesh(bGeo, bMat);
-    b.position.set(x, h/2, z);
-    b.castShadow = true;
-    b.receiveShadow = true;
-    scene.add(b);
-    
-    // Tejado
-    const rGeo = new THREE.ConeGeometry(w * 0.8, 4, 4);
-    const rMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
-    const r = new THREE.Mesh(rGeo, rMat);
-    r.position.set(x, h + 2, z);
-    r.rotation.y = Math.PI / 4;
-    r.castShadow = true;
-    scene.add(r);
-  }
+    // Animaciones
+    playerMixer = new THREE.AnimationMixer(player);
+    const idle = playerMixer.clipAction(gltf.animations[0]); // Idle
+    const walk = playerMixer.clipAction(gltf.animations[1]); // Walk
+    idle.play();
+    player.userData.idle = idle;
+    player.userData.walk = walk;
+  });
 
-  // Crear Personaje (Estilo la foto)
-  player = new THREE.Group();
+  // 2. Cargar Dragón (Fruta en el suelo)
+  dragonFruit = new THREE.Group();
+  dragonFruit.position.set(10, 1, -10);
   
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2, 0.8), new THREE.MeshStandardMaterial({ color: 0x00ff00 }));
-  torso.position.y = 2; torso.castShadow = true; player.add(torso);
-
-  const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xffcc99 }));
-  head.position.y = 3.8; head.castShadow = true; player.add(head);
-
-  const hair = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.5, 1.25), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-  hair.position.y = 4.2; hair.position.z = 0.05; player.add(hair);
-
-  // Capa de piel
-  const cape = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.2, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-  cape.position.y = 2.8; cape.castShadow = true; player.add(cape);
-
-  const legGeo = new THREE.BoxGeometry(0.6, 1.8, 0.6);
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-  const legL = new THREE.Mesh(legGeo, legMat); legL.position.set(-0.4, 0.9, 0); legL.castShadow = true; player.add(legL);
-  const legR = new THREE.Mesh(legGeo, legMat); legR.position.set(0.4, 0.9, 0); legR.castShadow = true; player.add(legR);
-
-  const armGeo = new THREE.BoxGeometry(0.5, 1.8, 0.5);
-  const armMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  const armL = new THREE.Mesh(armGeo, armMat); armL.position.set(-1.1, 2, 0); armL.castShadow = true; player.add(armL);
-  const armR = new THREE.Mesh(armGeo, armMat); armR.position.set(1.1, 2, 0); armR.castShadow = true; player.add(armR);
-
-  player.userData = { legL, legR, armL, armR };
-  scene.add(player);
-
-  // CREAR LA FRUTA DRAGÓN EN EL SUELO
-  const dragonFruit = new THREE.Group();
-  const dfBase = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200, emissiveIntensity: 1 }));
-  dragonFruit.add(dfBase);
-  // Espinas falsas
-  for(let i=0; i<8; i++){
-     const spike = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 4), new THREE.MeshStandardMaterial({ color: 0x228822 }));
-     spike.position.set(Math.cos(i)*0.8, Math.sin(i)*0.8, 0);
-     spike.rotation.z = Math.atan2(spike.position.y, spike.position.x) - Math.PI/2;
-     dragonFruit.add(spike);
-  }
-  dragonFruit.position.set(5, 1, 5);
+  // Esfera base de la fruta
+  const fruitMesh = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1, 2),
+    new THREE.MeshPhysicalMaterial({ color: 0xff2200, roughness: 0.2, metalness: 0.1, clearcoat: 1.0, emissive: 0x441100 })
+  );
+  dragonFruit.add(fruitMesh);
+  
+  // Efecto de luz en la fruta
+  const fLight = new THREE.PointLight(0xff4400, 3, 15);
+  fLight.position.set(0, 1, 0);
+  dragonFruit.add(fLight);
   scene.add(dragonFruit);
-  player.userData.dragonFruit = dragonFruit;
-  
-  // Luz de la fruta
-  const fLight = new THREE.PointLight(0xff4400, 2, 10);
-  fLight.position.set(5, 1, 5);
-  scene.add(fLight);
-  player.userData.fLight = fLight;
 
-  clock = new THREE.Clock();
-  requestAnimationFrame(animate);
-  updateUI();
+  // Cargar modelo de Dragón (Oculto inicialmente)
+  loader.load('https://threejs.org/examples/models/gltf/DragonAttenuation.glb', (gltf) => {
+    dragonModel = gltf.scene;
+    // Hacer al dragón ENORME y realista
+    dragonModel.scale.set(3, 3, 3);
+    dragonModel.position.set(0, 20, -30);
+    dragonModel.visible = false; // Oculto hasta obtener la fruta
+    dragonModel.traverse(child => { if(child.isMesh) child.castShadow = true; });
+    scene.add(dragonModel);
+
+    dragonMixer = new THREE.AnimationMixer(dragonModel);
+    if (gltf.animations.length > 0) {
+      const flyAnim = dragonMixer.clipAction(gltf.animations[0]);
+      flyAnim.play();
+    }
+  });
+
+  // Partículas de fuego
+  const fireGeo = new THREE.BufferGeometry();
+  const fireCount = 500;
+  const firePos = new Float32Array(fireCount * 3);
+  fireGeo.setAttribute('position', new THREE.BufferAttribute(firePos, 3));
+  const fireMat = new THREE.PointsMaterial({ color: 0xff4400, size: 0.5, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+  const fireParticlesMesh = new THREE.Points(fireGeo, fireMat);
+  scene.add(fireParticlesMesh);
+  scene.userData.fireParticles = fireParticlesMesh;
+  scene.userData.firePos = firePos;
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
 }
 
-// Bucle de juego
+// Bucle de animación
+let timeAcc = 0;
 function animate() {
+  if (!S.playing) return;
   requestAnimationFrame(animate);
-  if (!state.playing) return;
-  
+
   const dt = Math.min(clock.getDelta(), 0.1);
   const time = clock.getElapsedTime();
+  timeAcc += dt;
 
-  // Movimiento
-  let mx = state.joyX, mz = -state.joyY;
-  let isMoving = false;
-  if (Math.abs(mx) > 0.1 || Math.abs(mz) > 0.1) {
-    isMoving = true;
-    // Rotar personaje hacia el movimiento
-    const angle = Math.atan2(mx, mz);
-    let diff = angle - player.rotation.y;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    player.rotation.y += diff * dt * 10;
+  if (playerMixer) playerMixer.update(dt);
+  if (dragonMixer) dragonMixer.update(dt);
 
-    // Mover
-    const speed = 8;
-    player.position.x += Math.sin(player.rotation.y) * speed * dt;
-    player.position.z += Math.cos(player.rotation.y) * speed * dt;
-  }
+  // Mover al jugador
+  if (player) {
+    let mx = S.joyX, mz = -S.joyY;
+    S.isMoving = Math.abs(mx) > 0.1 || Math.abs(mz) > 0.1;
 
-  // Animación
-  const legL = player.userData.legL, legR = player.userData.legR;
-  const armL = player.userData.armL, armR = player.userData.armR;
-  if (isMoving) {
-    const swing = Math.sin(time * 12) * 0.5;
-    legL.rotation.x = swing; legR.rotation.x = -swing;
-    armL.rotation.x = -swing; armR.rotation.x = swing;
-  } else {
-    legL.rotation.x *= 0.8; legR.rotation.x *= 0.8;
-    armL.rotation.x *= 0.8; armR.rotation.x *= 0.8;
-  }
+    if (S.isMoving) {
+      const angle = Math.atan2(mx, mz);
+      let diff = angle - player.rotation.y;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      player.rotation.y += diff * dt * 10;
 
-  // Salto
-  if (state.isJumping) {
-    state.velY -= 30 * dt;
-    player.position.y += state.velY * dt;
-    if (player.position.y <= 0) { player.position.y = 0; state.isJumping = false; state.velY = 0; }
-  }
+      const speed = 15;
+      player.position.x += Math.sin(player.rotation.y) * speed * dt;
+      player.position.z += Math.cos(player.rotation.y) * speed * dt;
 
-  // Rotar fruta dragón
-  const df = player.userData.dragonFruit;
-  if (df && df.visible) {
-    df.rotation.y += dt * 2;
-    df.position.y = 1 + Math.sin(time * 3) * 0.2;
-    player.userData.fLight.position.copy(df.position);
-    
-    // Recoger fruta
-    const dist = Math.hypot(player.position.x - df.position.x, player.position.z - df.position.z);
-    if (dist < 2) {
-      df.visible = false;
-      player.userData.fLight.visible = false;
-      state.hasDragon = true;
-      document.getElementById('dragon-skill').style.opacity = '1';
-      showNotif("¡Has obtenido la Fruta Dragón! 🐉");
+      // Animación caminar
+      if (player.userData.walk && !player.userData.walk.isRunning()) {
+        player.userData.idle.stop();
+        player.userData.walk.play();
+      }
+    } else {
+      if (player.userData.idle && !player.userData.idle.isRunning()) {
+        player.userData.walk.stop();
+        player.userData.idle.play();
+      }
+    }
+
+    // Salto
+    if (S.isJumping) {
+      S.velY -= 40 * dt;
+      player.position.y += S.velY * dt;
+      if (player.position.y <= 1) { player.position.y = 1; S.isJumping = false; S.velY = 0; }
+    }
+
+    // Cámara tercera persona (Suave)
+    const camOffset = new THREE.Vector3(0, 8, 15);
+    camOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotation.y);
+    const targetCamPos = player.position.clone().add(camOffset);
+    camera.position.lerp(targetCamPos, dt * 3);
+    camera.lookAt(player.position.x, player.position.y + 3, player.position.z);
+
+    // Colisión Fruta
+    if (dragonFruit && !isFruitCollected) {
+      dragonFruit.rotation.y += dt * 2;
+      dragonFruit.position.y = 2 + Math.sin(time * 2) * 0.5;
+      
+      const dist = player.position.distanceTo(dragonFruit.position);
+      if (dist < 4) {
+        isFruitCollected = true;
+        scene.remove(dragonFruit);
+        document.getElementById('fruit-prompt').style.display = 'block';
+        setTimeout(() => document.getElementById('fruit-prompt').style.display = 'none', 3000);
+        
+        // Activar UI Dragón
+        document.getElementById('btn-dragon').classList.add('active');
+        document.getElementById('ui-slot-dragon').style.opacity = '1';
+        
+        if (dragonModel) dragonModel.visible = true;
+      }
+    }
+
+    // Movimiento del Dragón volador
+    if (isFruitCollected && dragonModel) {
+      // El dragón sobrevuela en círculos
+      const r = 25;
+      const dx = Math.cos(time * 0.5) * r;
+      const dz = Math.sin(time * 0.5) * r;
+      dragonModel.position.set(player.position.x + dx, 20, player.position.z + dz);
+      dragonModel.rotation.y = -time * 0.5 + Math.PI/2;
+      
+      // Dejar estela de fuego
+      if (Math.random() < 0.3) {
+        spawnFire(dragonModel.position.x, dragonModel.position.y, dragonModel.position.z);
+      }
+    }
+
+    // Animar Agua (Olas simples)
+    const waterMesh = scene.children.find(c => c.geometry?.type === 'PlaneGeometry' && c.position.y === -1);
+    if (waterMesh) {
+      const positions = waterMesh.geometry.attributes.position;
+      for(let i=0; i<positions.count; i++) {
+        positions.setZ(i, Math.sin(i * 0.1 + time) * 2);
+      }
+      positions.needsUpdate = true;
     }
   }
 
-  // Cámara (Tercera persona fija)
-  const camOffset = new THREE.Vector3(0, 12, 14);
-  camOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotation.y);
-  camera.position.lerp(player.position.clone().add(camOffset), dt * 5);
-  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+  // Partículas de fuego
+  updateFire(dt);
 
   renderer.render(scene, camera);
 }
 
-// Lógica de UI y Niveles
-function addXP(amount) {
-  if (state.lvl >= state.maxLvl) return;
-  state.xp += amount;
-  while (state.xp >= state.xpNext && state.lvl < state.maxLvl) {
-    state.xp -= state.xpNext;
-    state.lvl++;
-    state.xpNext = Math.floor(100 * Math.pow(1.05, state.lvl));
-    state.maxHp += 50; state.hp = state.maxHp;
-    state.maxEn += 30; state.en = state.maxEn;
+// Sistema de partículas de fuego
+let fireIdx = 0;
+function spawnFire(x, y, z) {
+  const mesh = scene.userData.fireParticles;
+  const pos = scene.userData.firePos;
+  pos[fireIdx * 3] = x + (Math.random()-0.5)*5;
+  pos[fireIdx * 3 + 1] = y + (Math.random()-0.5)*5;
+  pos[fireIdx * 3 + 2] = z + (Math.random()-0.5)*5;
+  fireIdx = (fireIdx + 1) % 500;
+  mesh.geometry.attributes.position.needsUpdate = true;
+}
+
+function updateFire(dt) {
+  const mesh = scene.userData.fireParticles;
+  const pos = scene.userData.firePos;
+  for(let i=0; i<500; i++) {
+    // Hacer que caigan
+    pos[i*3+1] -= 10 * dt;
+    if (pos[i*3+1] < 0) pos[i*3+1] = -100; // Ocultar bajo tierra
   }
-  if (state.lvl >= state.maxLvl) state.xp = 0;
-  updateUI();
+  mesh.geometry.attributes.position.needsUpdate = true;
 }
 
-function updateUI() {
-  document.getElementById('lvl-text').innerText = `Lv. ${state.lvl} / ${state.maxLvl}`;
-  document.getElementById('money-text').innerText = `$ ${state.money.toLocaleString()}`;
+// Habilidad Dragón
+window.useDragon = function() {
+  if (!isFruitCollected) return;
   
-  const xpPct = state.lvl >= state.maxLvl ? 100 : (state.xp / state.xpNext) * 100;
-  document.getElementById('xp-fill').style.width = xpPct + '%';
-  document.getElementById('xp-text').innerText = state.lvl >= state.maxLvl ? 'MAX' : `${state.xp} / ${state.xpNext} XP`;
+  // Efecto visual explosivo (Onda de fuego)
+  for(let i=0; i<50; i++) {
+    spawnFire(player.position.x, player.position.y+2, player.position.z);
+  }
   
-  document.getElementById('hp-fill').style.width = (state.hp / state.maxHp * 100) + '%';
-  document.getElementById('hp-val').innerText = `${state.hp}/${state.maxHp}`;
-  document.getElementById('en-fill').style.width = (state.en / state.maxEn * 100) + '%';
-  document.getElementById('en-val').innerText = `${state.en}/${state.maxEn}`;
+  // Hacer que el dragón se acerque y escupa fuego
+  if(dragonModel) {
+    dragonModel.position.set(player.position.x, 10, player.position.z - 10);
+    for(let i=0; i<200; i++) {
+      spawnFire(player.position.x, player.position.y+2, player.position.z);
+    }
+  }
+
+  addXP(150); // Subir XP
+  S.en -= 100;
+  updateHUD();
+};
+
+// Subir de Nivel
+function addXP(amount) {
+  if (S.lvl >= S.maxLvl) return;
+  S.xp += amount;
+  while (S.xp >= S.xpNext && S.lvl < S.maxLvl) {
+    S.xp -= S.xpNext;
+    S.lvl++;
+    S.xpNext = Math.floor(100 * Math.pow(1.05, S.lvl));
+    S.maxHp += 50; S.hp = S.maxHp;
+    S.maxEn += 30; S.en = S.maxEn;
+  }
+  if (S.lvl >= S.maxLvl) S.xp = 0;
+  updateHUD();
 }
 
-function showNotif(txt) {
-  const n = document.getElementById('notification');
-  n.innerHTML = txt;
-  n.style.opacity = '1';
-  setTimeout(() => n.style.opacity = '0', 3000);
+function updateHUD() {
+  document.getElementById('ui-lvl').innerText = `Lv. ${S.lvl} / ${S.maxLvl}`;
+  document.getElementById('ui-money').innerText = `$ ${S.money.toLocaleString()}`;
+  
+  const xpPct = S.lvl >= S.maxLvl ? 100 : (S.xp / S.xpNext) * 100;
+  document.getElementById('ui-xp').style.width = xpPct + '%';
+  document.getElementById('ui-xp-txt').innerText = S.lvl >= S.maxLvl ? 'MAX' : `${S.xp} / ${S.xpNext} XP`;
+  
+  document.getElementById('ui-hp').style.width = (S.hp / S.maxHp * 100) + '%';
+  document.getElementById('ui-hp-val').innerText = `${S.hp}/${S.maxHp}`;
+  document.getElementById('ui-en').style.width = (S.en / S.maxEn * 100) + '%';
+  document.getElementById('ui-en-val').innerText = `${S.en}/${S.maxEn}`;
 }
 
-// Controles
-const joystick = document.getElementById('joystick');
+// Iniciar
+initScene();
+updateHUD();
+
+// Ganar dinero pasivo
+setInterval(() => {
+  if(S.playing) { S.money += 25; updateHUD(); }
+}, 2000);
+
+
+// ===== CONTROLES TÁCTILES Y TECLADO =====
+const joy = document.getElementById('joy');
 const knob = document.getElementById('knob');
 let joyActive = false, center = {x:0, y:0}, maxDist = 40;
 
 function joyStart(e) {
   joyActive = true;
-  const r = joystick.getBoundingClientRect();
+  const r = joy.getBoundingClientRect();
   center = {x: r.left + r.width/2, y: r.top + r.height/2};
   if(e.type==='touchstart') e.preventDefault();
 }
@@ -403,96 +479,39 @@ function joyMove(e) {
   const dist = Math.hypot(dx, dy);
   if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
   knob.style.transform = `translate(${dx}px, ${dy}px)`;
-  state.joyX = dx/maxDist; state.joyY = dy/maxDist;
+  S.joyX = dx/maxDist; S.joyY = dy/maxDist;
 }
 function joyEnd() {
   joyActive = false;
   knob.style.transform = `translate(0px, 0px)`;
-  state.joyX = 0; state.joyY = 0;
+  S.joyX = 0; S.joyY = 0;
 }
-joystick.addEventListener('mousedown', joyStart); document.addEventListener('mousemove', joyMove); document.addEventListener('mouseup', joyEnd);
-joystick.addEventListener('touchstart', joyStart, {passive:false}); document.addEventListener('touchmove', joyMove, {passive:false}); document.addEventListener('touchend', joyEnd);
+joy.addEventListener('mousedown', joyStart); document.addEventListener('mousemove', joyMove); document.addEventListener('mouseup', joyEnd);
+joy.addEventListener('touchstart', joyStart, {passive:false}); document.addEventListener('touchmove', joyMove, {passive:false}); document.addEventListener('touchend', joyEnd);
 
-// Teclado
+window.jump = function() {
+  if (!S.isJumping) { S.velY = 15; S.isJumping = true; }
+};
+
 const keys = {w:0,a:0,s:0,d:0};
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if(keys.hasOwnProperty(k)) keys[k] = 1;
-  if(e.code === 'Space' && !state.isJumping) { state.velY = 12; state.isJumping = true; }
+  if(e.code === 'Space') window.jump();
 });
 document.addEventListener('keyup', e => {
   const k = e.key.toLowerCase();
   if(keys.hasOwnProperty(k)) keys[k] = 0;
 });
+
+// Update loop para teclado
 setInterval(() => {
-  if(!state.playing) return;
+  if(!S.playing) return;
   let kx = (keys.d - keys.a), ky = (keys.s - keys.w);
-  if(kx !== 0 || ky !== 0) { state.joyX = kx; state.joyY = ky; }
-  else if(!joyActive) { state.joyX = 0; state.joyY = 0; }
+  if(kx !== 0 || ky !== 0) { S.joyX = kx; S.joyY = ky; }
+  else if(!joyActive) { S.joyX = 0; S.joyY = 0; }
 }, 20);
 
-// Botones
-document.getElementById('jump-btn').addEventListener('touchstart', (e) => { e.preventDefault(); if(!state.isJumping){state.velY=12; state.isJumping=true;} });
-document.getElementById('jump-btn').addEventListener('mousedown', () => { if(!state.isJumping){state.velY=12; state.isJumping=true;} });
-
-// Usar Dragón
-document.getElementById('dragon-btn').addEventListener('mousedown', () => useDragon());
-document.getElementById('dragon-btn').addEventListener('touchstart', (e) => { e.preventDefault(); useDragon(); }, {passive:false});
-
-function useDragon() {
-  if (!state.hasDragon) return;
-  showNotif("¡FUEGO DE DRAGÓN! 🐉🔥");
-  // Efecto visual rápido
-  const df = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.6 }));
-  df.position.copy(player.position); df.position.y = 2;
-  scene.add(df);
-  
-  let s = 1;
-  const anim = setInterval(() => {
-    s += 0.1; df.scale.set(s, s, s);
-    df.material.opacity -= 0.05;
-    if (df.material.opacity <= 0) { clearInterval(anim); scene.remove(df); }
-  }, 30);
-  
-  // Subir de nivel (simular XP por usar fruta)
-  addXP(50);
-}
-
-// Iniciar juego
-function startGame(faction) {
-  document.getElementById('menu-screen').style.opacity = '0';
-  setTimeout(() => document.getElementById('menu-screen').style.display = 'none', 500);
-  document.getElementById('game-ui').style.display = 'block';
-  
-  showNotif(`Unido al equipo de <${faction}>`);
-  
-  state.playing = true;
-  clock = new THREE.Clock(); // Reiniciar reloj
-  
-  // Simular ganancia de dinero pasiva
-  setInterval(() => {
-    if(!state.playing) return;
-    state.money += 50;
-    updateUI();
-  }, 2000);
-}
-
-// Iniciar Three.js
-window.onload = () => {
-  if (typeof THREE === 'undefined') {
-    document.body.innerHTML += "<h2 style='color:white;text-align:center;margin-top:20px;'>Error cargando Three.js. Revisa tu conexión a internet.</h2>";
-    return;
-  }
-  init3D();
-};
-
-window.addEventListener('resize', () => {
-  if(camera && renderer) {
-    camera.aspect = innerWidth/innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  }
-});
 </script>
 </body>
 </html>
