@@ -2,343 +2,635 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Blox Fruits 3D - Vista Acostada</title>
+<title>Cristales en la Oscuridad — 3D</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-    body { overflow: hidden; background: #1a1a2e; font-family: sans-serif; }
-    
-    /* Interfaz */
-    #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; color: white; }
-    .panel { background: rgba(0,0,0,0.7); border: 2px solid #ff9f1c; border-radius: 8px; padding: 10px; }
-    #stats { position: absolute; top: 10px; left: 10px; width: 180px; font-size: 12px; }
-    #mission { position: absolute; top: 10px; right: 10px; width: 160px; font-size: 12px; }
-    .bar { height: 10px; background: #333; border-radius: 5px; margin-top: 4px; overflow: hidden; }
-    .fill { height: 100%; transition: width 0.2s; }
-    #hpFill { background: #e74c3c; width: 100%; }
-    #xpFill { background: #3498db; width: 0%; }
-    
-    /* Botones móviles */
-    #controls {
-        position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px;
-        pointer-events: none; z-index: 20;
-    }
-    .btn {
-        width: 65px; height: 65px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
-        border-radius: 50%; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center;
-        pointer-events: auto; user-select: none; -webkit-user-select: none;
-    }
-    .btn:active { background: rgba(255,255,255,0.4); }
-    
-    #startScreen {
-        position: absolute; inset: 0; background: #1a1a2e; display: flex; flex-direction: column;
-        align-items: center; justify-content: center; z-index: 30; color: white; text-align: center;
-    }
-    h1 { color: #ff9f1c; font-size: 32px; margin-bottom: 20px; }
-    #playBtn {
-        padding: 15px 40px; background: #ff9f1c; border: none; border-radius: 30px;
-        font-size: 20px; font-weight: bold; color: white; pointer-events: auto;
-    }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    overflow: hidden;
+    background: #000;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+    cursor: none;
+  }
+  canvas { display: block; }
+
+  /* Crosshair */
+  #crosshair {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    margin: -4px 0 0 -4px;
+    border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 50;
+    box-shadow: 0 0 8px rgba(0,255,255,0.8);
+  }
+
+  /* HUD */
+  #hud {
+    position: fixed;
+    top: 20px; left: 20px;
+    z-index: 40;
+    font-size: 18px;
+    text-shadow: 0 0 10px rgba(0,255,255,0.8);
+    pointer-events: none;
+    line-height: 1.8;
+  }
+  #hud .label { color: #00ffff; font-weight: bold; }
+
+  #timer {
+    position: fixed;
+    top: 20px; right: 20px;
+    z-index: 40;
+    font-size: 28px;
+    font-weight: bold;
+    color: #ff4444;
+    text-shadow: 0 0 15px rgba(255,68,68,0.9);
+    pointer-events: none;
+  }
+
+  /* Brújula / objetivo */
+  #objective {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    font-size: 16px;
+    color: #aaa;
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(0,0,0,0.9);
+  }
+
+  /* Pantalla de inicio / fin */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, rgba(10,10,30,0.95), rgba(0,0,0,1));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    text-align: center;
+    padding: 20px;
+    cursor: pointer;
+  }
+  #overlay h1 {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(0,255,255,0.6));
+  }
+  #overlay p { margin: 8px 0; color: #ccc; font-size: 1.1rem; }
+  #overlay .controls {
+    margin: 25px 0;
+    padding: 20px 30px;
+    border: 1px solid rgba(0,255,255,0.3);
+    border-radius: 12px;
+    background: rgba(0,255,255,0.05);
+  }
+  #overlay .controls div { margin: 6px 0; font-size: 1rem; }
+  #overlay .controls strong { color: #00ffff; }
+  #overlay button {
+    margin-top: 20px;
+    padding: 15px 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #00ffff, #ff00ff);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 0 30px rgba(0,255,255,0.5);
+  }
+  #overlay button:hover { transform: scale(1.05); }
+  .hidden { display: none !important; }
+
+  /* Efecto daño */
+  #damage {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, transparent 40%, rgba(255,0,0,0.6));
+    opacity: 0;
+    pointer-events: none;
+    z-index: 60;
+    transition: opacity 0.1s;
+  }
 </style>
 </head>
 <body>
 
-<div id="ui">
-    <div id="stats" class="panel">
-        ❤️ Vida: <span id="hpText">100</span><br>
-        <div class="bar"><div class="fill" id="hpFill"></div></div>
-        ⭐ Nivel: <span id="lvlText">1</span><br>
-        <div class="bar"><div class="fill" id="xpFill"></div></div>
-        🍎 Frutas: <span id="fruitText">0</span>
-    </div>
-    <div id="mission" class="panel">
-        📜 Misión: <br><span id="missionText">Recoge 2 frutas</span>
-    </div>
+<div id="crosshair" class="hidden"></div>
+<div id="damage"></div>
+
+<div id="hud" class="hidden">
+  <div><span class="label">◆ Cristales:</span> <span id="crystals">0</span> / <span id="total">0</span></div>
+</div>
+<div id="timer" class="hidden">90</div>
+<div id="objective" class="hidden">Recolecta todos los cristales y encuentra la salida</div>
+
+<div id="overlay">
+  <h1>CRISTALES EN LA OSCURIDAD</h1>
+  <p>Un laberinto. Una linterna. La salida te espera.</p>
+  <div class="controls">
+    <div><strong>WASD</strong> — Moverse</div>
+    <div><strong>Ratón</strong> — Mirar alrededor</div>
+    <div><strong>Shift</strong> — Correr</div>
+    <div><strong>Click</strong> — Bloquear cursor</div>
+    <div><strong>ESC</strong> — Liberar cursor</div>
+  </div>
+  <p>Recolecta los <strong style="color:#00ffff">cristales azules</strong>.<br>Evita los <strong style="color:#ff3333">orbes rojos</strong>.</p>
+  <button id="startBtn">ENTRAR AL LABERINTO</button>
 </div>
 
-<div id="controls">
-    <div style="display:flex; gap:15px;">
-        <div class="btn" id="btnLeft">←</div>
-        <div class="btn" id="btnRight">→</div>
-    </div>
-    <div style="display:flex; gap:15px;">
-        <div class="btn" id="btnJump">⬆️</div>
-        <div class="btn" id="btnAttack">⚔️</div>
-    </div>
-</div>
-
-<div id="startScreen">
-    <h1>BLOX FRUITS 3D</h1>
-    <p style="margin-bottom: 20px; color: #aaa;">Vista Acostada (Lateral)</p>
-    <button id="playBtn">¡JUGAR AHORA!</button>
-</div>
-
-<!-- Three.js desde un CDN estable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<script>
-// Variables
-let scene, camera, renderer, clock;
-let player, enemies = [], fruits = [], bullets = [];
-let isPlaying = false;
-let moveLeft = false, moveRight = false;
-let playerHp = 100, playerLevel = 1, playerXp = 0, playerXpMax = 100, fruitCount = 0;
-let keys = {};
-
-// Iniciar escena
-function init() {
-    // 1. Escena
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB); // Cielo azul claro
-
-    // 2. Cámara (Vista Acostada / Lateral)
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // La cámara se coloca a la derecha del jugador, mirando hacia la izquierda
-    camera.position.set(12, 6, 0); 
-    camera.lookAt(0, 2, 0);
-
-    // 3. Renderizador
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    // 4. Luces
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.8);
-    sun.position.set(10, 20, 10);
-    sun.castShadow = true;
-    scene.add(sun);
-
-    // 5. Suelo (Isla)
-    const floorGeo = new THREE.BoxGeometry(100, 2, 40);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.position.set(0, -1, 0);
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    // 6. Jugador (Cubo azul)
-    player = new THREE.Mesh(
-        new THREE.BoxGeometry(1.5, 2, 1.5),
-        new THREE.MeshStandardMaterial({ color: 0x42a5f5 })
-    );
-    player.position.set(0, 1, 0);
-    player.castShadow = true;
-    scene.add(player);
-
-    // 7. Reloj
-    clock = new THREE.Clock();
-
-    // 8. Eventos (Teclado y Botones)
-    window.addEventListener('keydown', e => keys[e.code] = true);
-    window.addEventListener('keyup', e => keys[e.code] = false);
-    window.addEventListener('resize', onResize);
-
-    // Botones táctiles
-    document.getElementById('btnLeft').addEventListener('touchstart', e => { e.preventDefault(); moveLeft = true; });
-    document.getElementById('btnLeft').addEventListener('touchend', e => { e.preventDefault(); moveLeft = false; });
-    document.getElementById('btnRight').addEventListener('touchstart', e => { e.preventDefault(); moveRight = true; });
-    document.getElementById('btnRight').addEventListener('touchend', e => { e.preventDefault(); moveRight = false; });
-    
-    document.getElementById('btnJump').addEventListener('touchstart', e => { 
-        e.preventDefault(); 
-        if (player.position.y <= 1.1) player.velocityY = 12;
-    });
-    
-    document.getElementById('btnAttack').addEventListener('touchstart', e => {
-        e.preventDefault();
-        shoot();
-    });
-
-    // Botón de inicio
-    document.getElementById('playBtn').addEventListener('click', () => {
-        document.getElementById('startScreen').style.display = 'none';
-        isPlaying = true;
-        spawnEnemy();
-        spawnFruit();
-    });
-
-    // Iniciar bucle
-    animate();
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
 }
+</script>
 
-function onResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
+<script type="module">
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
-// Generadores
-function spawnEnemy() {
-    if (enemies.length > 5) return;
-    const enemy = new THREE.Mesh(
-        new THREE.BoxGeometry(1.2, 1.2, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0xe53935 })
-    );
-    // Aparecen a los lados
-    const side = Math.random() > 0.5 ? 1 : -1;
-    enemy.position.set(side * 25, 1, (Math.random() - 0.5) * 15);
-    enemy.speed = 0.05 + Math.random() * 0.05;
-    scene.add(enemy);
-    enemies.push(enemy);
-}
+// ========== CONFIG ==========
+const MAZE_SIZE = 15;       // celdas por lado
+const CELL_SIZE = 4;         // tamaño de cada celda
+const WALL_HEIGHT = 4;
+const GAME_TIME = 90;
+const NUM_CRYSTALS = 6;
+const NUM_ENEMIES = 3;
 
-function spawnFruit() {
-    if (fruits.length > 3) return;
-    const fruit = new THREE.Mesh(
-        new THREE.SphereGeometry(0.8, 16, 16),
-        new THREE.MeshStandardMaterial({ color: 0xffeb3b, emissive: 0x444400 })
-    );
-    fruit.position.set((Math.random() - 0.5) * 30, 1.5, (Math.random() - 0.5) * 10);
-    scene.add(fruit);
-    fruits.push(fruit);
-}
+// ========== ESCENA ==========
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05050a);
+scene.fog = new THREE.FogExp2(0x05050a, 0.04);
 
-function shoot() {
-    if (!isPlaying) return;
-    const bullet = new THREE.Mesh(
-        new THREE.SphereGeometry(0.4, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0x00ffaa })
-    );
-    bullet.position.copy(player.position);
-    bullet.velocity = new THREE.Vector3(1, 0, 0); // Dispara hacia la derecha
-    scene.add(bullet);
-    bullets.push(bullet);
-}
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 200);
+camera.position.set(2, 1.7, 2);
 
-// Actualizar UI
-function updateUI() {
-    document.getElementById('hpText').innerText = Math.floor(playerHp);
-    document.getElementById('hpFill').style.width = Math.max(0, playerHp) + '%';
-    document.getElementById('lvlText').innerText = playerLevel;
-    document.getElementById('xpFill').style.width = (playerXp / playerXpMax * 100) + '%';
-    document.getElementById('fruitText').innerText = fruitCount;
-}
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
 
-// Lógica del juego
-function updateGame(delta) {
-    // Movimiento
-    let speed = 8 * delta;
-    if (keys['KeyA'] || keys['ArrowLeft'] || moveLeft) {
-        player.position.x -= speed;
-        player.rotation.y = -Math.PI / 2;
+// ========== LUCES ==========
+// Luz ambiental tenue (casi oscuro)
+const ambient = new THREE.AmbientLight(0x202040, 0.3);
+scene.add(ambient);
+
+// Luz de la linterna (spotlight pegada a la cámara)
+const flashlight = new THREE.SpotLight(0xffffff, 4, 30, Math.PI / 6, 0.5, 1.5);
+flashlight.castShadow = true;
+flashlight.shadow.mapSize.set(1024, 1024);
+flashlight.shadow.camera.near = 0.5;
+flashlight.shadow.camera.far = 30;
+scene.add(flashlight);
+scene.add(flashlight.target);
+
+// Pequeña luz de relleno
+const fill = new THREE.PointLight(0x334455, 0.5, 10);
+scene.add(fill);
+
+// ========== GENERACIÓN DEL LABERINTO ==========
+// Algoritmo: laberinto perfecto con backtracking
+function generateMaze(size) {
+  const grid = Array(size).fill(0).map(() => Array(size).fill(1));
+  const stack = [[1, 1]];
+  grid[1][1] = 0;
+  const dirs = [[0,2],[0,-2],[2,0],[-2,0]];
+
+  while (stack.length) {
+    const [x, y] = stack[stack.length - 1];
+    const neighbors = [];
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy;
+      if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && grid[nx][ny] === 1) {
+        neighbors.push([nx, ny, dx/2, dy/2]);
+      }
     }
-    if (keys['KeyD'] || keys['ArrowRight'] || moveRight) {
-        player.position.x += speed;
-        player.rotation.y = Math.PI / 2;
+    if (neighbors.length === 0) {
+      stack.pop();
+    } else {
+      const [nx, ny, mx, my] = neighbors[Math.floor(Math.random() * neighbors.length)];
+      grid[x + mx][y + my] = 0;
+      grid[nx][ny] = 0;
+      stack.push([nx, ny]);
     }
-
-    // Salto (Gravedad simple)
-    if (keys['Space'] && player.position.y <= 1.1) {
-        player.velocityY = 12;
-    }
-    player.velocityY = (player.velocityY || 0) - 30 * delta;
-    player.position.y += player.velocityY * delta;
-    if (player.position.y < 1) {
-        player.position.y = 1;
-        player.velocityY = 0;
-    }
-
-    // Límites del escenario
-    player.position.x = Math.max(-40, Math.min(40, player.position.x));
-
-    // Cámara sigue al jugador (Vista Acostada)
-    // Mantiene la cámara a 12 unidades a la derecha y 6 de altura
-    camera.position.x += (player.position.x + 12 - camera.position.x) * 0.1;
-    camera.position.z += (0 - camera.position.z) * 0.1;
-    camera.lookAt(player.position.x, player.position.y + 1, 0);
-
-    // Enemigos persiguen
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        const e = enemies[i];
-        const dir = new THREE.Vector3().subVectors(player.position, e.position);
-        dir.y = 0;
-        dir.normalize();
-        e.position.add(dir.multiplyScalar(e.speed));
-
-        // Daño al jugador
-        if (e.position.distanceTo(player.position) < 2) {
-            playerHp -= 10 * delta * 10;
-            if (playerHp <= 0) {
-                playerHp = 100; // Reinicio simple
-                player.position.set(0, 1, 0);
-                showMsg("¡Has sido derrotado!");
-            }
-        }
-    }
-
-    // Balas
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        const b = bullets[i];
-        b.position.add(b.velocity);
-        // Colisión con enemigos
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            if (b.position.distanceTo(enemies[j].position) < 1.5) {
-                scene.remove(enemies[j]);
-                enemies.splice(j, 1);
-                scene.remove(b);
-                bullets.splice(i, 1);
-                playerXp += 25;
-                if (playerXp >= playerXpMax) {
-                    playerXp -= playerXpMax;
-                    playerLevel++;
-                    playerXpMax = Math.floor(playerXpMax * 1.5);
-                    showMsg("¡Subiste de nivel!");
-                }
-                updateUI();
-                break;
-            }
-        }
-        // Eliminar balas lejanas
-        if (Math.abs(b.position.x) > 60) {
-            scene.remove(b);
-            bullets.splice(i, 1);
-        }
-    }
-
-    // Frutas
-    for (let i = fruits.length - 1; i >= 0; i--) {
-        const f = fruits[i];
-        f.rotation.y += 0.05;
-        f.position.y = 1.5 + Math.sin(Date.now() * 0.005) * 0.3;
-        
-        if (f.position.distanceTo(player.position) < 2) {
-            scene.remove(f);
-            fruits.splice(i, 1);
-            fruitCount++;
-            showMsg("¡Fruta obtenida!");
-            updateUI();
-            spawnFruit();
-        }
-    }
-
-    // Spawns periódicos
-    if (Math.random() < 0.01) spawnEnemy();
-    if (Math.random() < 0.005) spawnFruit();
+  }
+  return grid;
 }
 
-function showMsg(text) {
-    const el = document.getElementById('missionText');
-    el.innerText = text;
-    setTimeout(() => el.innerText = "Recoge 2 frutas", 2000);
+const maze = generateMaze(MAZE_SIZE);
+
+// ========== MATERIALES ==========
+const wallMat = new THREE.MeshStandardMaterial({
+  color: 0x3a3a4a,
+  roughness: 0.85,
+  metalness: 0.15,
+});
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1a22,
+  roughness: 0.9,
+  metalness: 0.05,
+});
+const ceilMat = new THREE.MeshStandardMaterial({
+  color: 0x0f0f18,
+  roughness: 1,
+  metalness: 0,
+});
+
+// Suelo y techo
+const floorGeo = new THREE.PlaneGeometry(MAZE_SIZE * CELL_SIZE, MAZE_SIZE * CELL_SIZE);
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+floor.position.set(MAZE_SIZE * CELL_SIZE / 2, 0, MAZE_SIZE * CELL_SIZE / 2);
+scene.add(floor);
+
+const ceil = new THREE.Mesh(floorGeo, ceilMat);
+ceil.rotation.x = Math.PI / 2;
+ceil.position.set(MAZE_SIZE * CELL_SIZE / 2, WALL_HEIGHT, MAZE_SIZE * CELL_SIZE / 2);
+scene.add(ceil);
+
+// Paredes
+const wallGeo = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+const walls = []; // para colisiones
+for (let x = 0; x < MAZE_SIZE; x++) {
+  for (let z = 0; z < MAZE_SIZE; z++) {
+    if (maze[x][z] === 1) {
+      const wall = new THREE.Mesh(wallGeo, wallMat);
+      wall.position.set(x * CELL_SIZE + CELL_SIZE/2, WALL_HEIGHT/2, z * CELL_SIZE + CELL_SIZE/2);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      scene.add(wall);
+      walls.push({ x: x * CELL_SIZE + CELL_SIZE/2, z: z * CELL_SIZE + CELL_SIZE/2 });
+    }
+  }
 }
 
-// Bucle de renderizado
+// ========== CRISTALES ==========
+const crystals = [];
+const crystalGeo = new THREE.OctahedronGeometry(0.4, 0);
+const crystalMat = new THREE.MeshStandardMaterial({
+  color: 0x00ffff,
+  emissive: 0x00aaff,
+  emissiveIntensity: 2,
+  metalness: 0.3,
+  roughness: 0.1,
+  transparent: true,
+  opacity: 0.9,
+});
+
+function placeCrystals() {
+  let placed = 0;
+  const maxTries = 200;
+  let tries = 0;
+  while (placed < NUM_CRYSTALS && tries < maxTries) {
+    tries++;
+    const cx = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
+    const cz = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 1;
+    if (maze[cx][cz] !== 0) continue;
+    if (cx === 1 && cz === 1) continue;
+    // distancia mínima entre cristales
+    const wx = cx * CELL_SIZE + CELL_SIZE/2;
+    const wz = cz * CELL_SIZE + CELL_SIZE/2;
+    if (crystals.some(c => Math.hypot(c.position.x - wx, c.position.z - wz) < 6)) continue;
+
+    const crystal = new THREE.Mesh(crystalGeo, crystalMat.clone());
+    crystal.position.set(wx, 1.2, wz);
+    crystal.castShadow = true;
+    crystal.userData = { baseY: 1.2, phase: Math.random() * Math.PI * 2, collected: false };
+    scene.add(crystal);
+    crystals.push(crystal);
+
+    // luz puntual en el cristal
+    const cLight = new THREE.PointLight(0x00ffff, 1.5, 8, 2);
+    cLight.position.copy(crystal.position);
+    scene.add(cLight);
+    crystal.userData.light = cLight;
+
+    placed++;
+  }
+  document.getElementById('total').textContent = crystals.length;
+}
+placeCrystals();
+
+// ========== ORBES ENEMIGOS ==========
+const enemies = [];
+const enemyGeo = new THREE.SphereGeometry(0.5, 16, 16);
+const enemyMat = new THREE.MeshStandardMaterial({
+  color: 0xff2222,
+  emissive: 0xff0000,
+  emissiveIntensity: 1.5,
+  metalness: 0.2,
+  roughness: 0.3,
+});
+
+function placeEnemies() {
+  let placed = 0;
+  let tries = 0;
+  while (placed < NUM_ENEMIES && tries < 200) {
+    tries++;
+    const cx = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 2;
+    const cz = Math.floor(Math.random() * (MAZE_SIZE - 2)) + 2;
+    if (maze[cx][cz] !== 0) continue;
+    const wx = cx * CELL_SIZE + CELL_SIZE/2;
+    const wz = cz * CELL_SIZE + CELL_SIZE/2;
+    if (Math.hypot(wx - 2, wz - 2) < 10) continue; // lejos del inicio
+
+    const orb = new THREE.Mesh(enemyGeo, enemyMat.clone());
+    orb.position.set(wx, 1.2, wz);
+    orb.castShadow = true;
+    orb.userData = { phase: Math.random() * Math.PI * 2 };
+    scene.add(orb);
+
+    const eLight = new THREE.PointLight(0xff0000, 2, 6, 2);
+    eLight.position.copy(orb.position);
+    scene.add(eLight);
+    orb.userData.light = eLight;
+
+    // dirección de patrulla aleatoria
+    orb.userData.angle = Math.random() * Math.PI * 2;
+    orb.userData.speed = 1.5 + Math.random();
+
+    enemies.push(orb);
+    placed++;
+  }
+}
+placeEnemies();
+
+// ========== SALIDA ==========
+// Colocar salida en la esquina opuesta al inicio
+let exitPos = { x: (MAZE_SIZE - 2) * CELL_SIZE + CELL_SIZE/2, z: (MAZE_SIZE - 2) * CELL_SIZE + CELL_SIZE/2 };
+// buscar celda libre cerca
+for (let r = 0; r < 5; r++) {
+  for (let dx = -r; dx <= r; dx++) {
+    for (let dz = -r; dz <= r; dz++) {
+      const cx = MAZE_SIZE - 2 + dx, cz = MAZE_SIZE - 2 + dz;
+      if (cx > 0 && cx < MAZE_SIZE - 1 && cz > 0 && cz < MAZE_SIZE - 1 && maze[cx][cz] === 0) {
+        exitPos = { x: cx * CELL_SIZE + CELL_SIZE/2, z: cz * CELL_SIZE + CELL_SIZE/2 };
+        r = dz = dx = 999;
+        break;
+      }
+    }
+  }
+}
+
+const exitGeo = new THREE.TorusGeometry(1, 0.15, 16, 32);
+const exitMat = new THREE.MeshStandardMaterial({
+  color: 0xffaa00,
+  emissive: 0xff6600,
+  emissiveIntensity: 3,
+});
+const exitRing = new THREE.Mesh(exitGeo, exitMat);
+exitRing.position.set(exitPos.x, 1.5, exitPos.z);
+exitRing.rotation.x = Math.PI / 2;
+scene.add(exitRing);
+const exitLight = new THREE.PointLight(0xff8800, 3, 12, 2);
+exitLight.position.set(exitPos.x, 1.5, exitPos.z);
+scene.add(exitLight);
+
+// ========== CONTROLES ==========
+const controls = new PointerLockControls(camera, renderer.domElement);
+scene.add(controls.getObject());
+
+const startBtn = document.getElementById('startBtn');
+const overlay = document.getElementById('overlay');
+const hud = document.getElementById('hud');
+const timerEl = document.getElementById('timer');
+const objectiveEl = document.getElementById('objective');
+const crosshair = document.getElementById('crosshair');
+const damageEl = document.getElementById('damage');
+
+let playing = false;
+let timeLeft = GAME_TIME;
+let collected = 0;
+let canTakeDamage = true;
+
+const keys = {};
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+startBtn.addEventListener('click', () => {
+  overlay.classList.add('hidden');
+  hud.classList.remove('hidden');
+  timerEl.classList.remove('hidden');
+  objectiveEl.classList.remove('hidden');
+  crosshair.classList.remove('hidden');
+  controls.lock();
+  playing = true;
+  lastTime = performance.now();
+  animate();
+});
+
+controls.addEventListener('lock', () => {
+  if (playing) {
+    crosshair.classList.remove('hidden');
+  }
+});
+controls.addEventListener('unlock', () => {
+  if (playing) {
+    // no pausamos el juego, solo liberamos cursor
+  }
+});
+
+// ========== COLISIONES ==========
+const PLAYER_RADIUS = 0.4;
+function checkCollision(x, z) {
+  for (const w of walls) {
+    const dx = Math.abs(x - w.x);
+    const dz = Math.abs(z - w.z);
+    const halfW = CELL_SIZE / 2;
+    if (dx < halfW + PLAYER_RADIUS && dz < halfW + PLAYER_RADIUS) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function tryMove(newX, newZ) {
+  // mover eje X
+  if (!checkCollision(newX, camera.position.z)) {
+    camera.position.x = newX;
+  }
+  // mover eje Z
+  if (!checkCollision(camera.position.x, newZ)) {
+    camera.position.z = newZ;
+  }
+}
+
+// ========== LOOP ==========
+let lastTime = performance.now();
+const clock = new THREE.Clock();
+
 function animate() {
-    requestAnimationFrame(animate);
-    const delta = Math.min(clock.getDelta(), 0.1);
+  if (!playing) return;
+  requestAnimationFrame(animate);
 
-    if (isPlaying) {
-        updateGame(delta);
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const now = performance.now();
+
+  // ===== Movimiento jugador =====
+  const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 8 : 4;
+  const forward = new THREE.Vector3();
+  camera.getWorldDirection(forward);
+  forward.y = 0;
+  forward.normalize();
+  const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0));
+
+  let moveVec = new THREE.Vector3();
+  if (keys['KeyW']) moveVec.add(forward);
+  if (keys['KeyS']) moveVec.sub(forward);
+  if (keys['KeyD']) moveVec.add(right);
+  if (keys['KeyA']) moveVec.sub(right);
+
+  if (moveVec.lengthSq() > 0) {
+    moveVec.normalize().multiplyScalar(speed * dt);
+    tryMove(camera.position.x + moveVec.x, camera.position.z + moveVec.z);
+  }
+
+  // ===== Linterna pegada a cámara =====
+  flashlight.position.copy(camera.position);
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  flashlight.target.position.copy(camera.position).add(dir.multiplyScalar(10));
+  flashlight.target.updateMatrixWorld();
+  fill.position.copy(camera.position);
+
+  // ===== Animación cristales =====
+  const t = clock.elapsedTime;
+  for (const c of crystals) {
+    if (c.userData.collected) continue;
+    c.position.y = c.userData.baseY + Math.sin(t * 2 + c.userData.phase) * 0.2;
+    c.rotation.y += dt * 2;
+    c.rotation.x += dt * 0.5;
+    c.userData.light.position.copy(c.position);
+
+    // recoger si está cerca
+    const dist = Math.hypot(camera.position.x - c.position.x, camera.position.z - c.position.z);
+    if (dist < 1.2) {
+      c.userData.collected = true;
+      c.visible = false;
+      c.userData.light.visible = false;
+      collected++;
+      document.getElementById('crystals').textContent = collected;
+      if (collected === crystals.length) {
+        objectiveEl.textContent = '¡Todos los cristales! Encuentra la salida ➤';
+        objectiveEl.style.color = '#ffaa00';
+      }
     }
+  }
 
-    renderer.render(scene, camera);
+  // ===== Enemigos (patrullan por celdas libres) =====
+  for (const e of enemies) {
+    e.position.y = 1.2 + Math.sin(t * 2 + e.userData.phase) * 0.15;
+    e.rotation.y += dt;
+
+    // movimiento simple: avanzar en una dirección, cambiar si choca
+    const dx = Math.cos(e.userData.angle) * e.userData.speed * dt;
+    const dz = Math.sin(e.userData.angle) * e.userData.speed * dt;
+    const nx = e.position.x + dx;
+    const nz = e.position.z + dz;
+
+    if (checkCollision(nx, nz)) {
+      e.userData.angle += Math.PI / 2 + Math.random();
+    } else {
+      e.position.x = nx;
+      e.position.z = nz;
+    }
+    e.userData.light.position.copy(e.position);
+
+    // daño
+    const dist = Math.hypot(camera.position.x - e.position.x, camera.position.z - e.position.z);
+    if (dist < 1.5 && canTakeDamage) {
+      takeDamage();
+    }
+  }
+
+  // ===== Salida =====
+  exitRing.rotation.z += dt * 2;
+  const exitDist = Math.hypot(camera.position.x - exitPos.x, camera.position.z - exitPos.z);
+  if (exitDist < 2 && collected === crystals.length) {
+    winGame();
+    return;
+  }
+
+  // ===== Timer =====
+  timeLeft -= dt;
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+    timerEl.textContent = '0';
+    loseGame('Se acabó el tiempo');
+    return;
+  }
+  timerEl.textContent = Math.ceil(timeLeft);
+  if (timeLeft < 20) timerEl.style.color = '#ff0000';
+  else timerEl.style.color = '#ff4444';
+
+  renderer.render(scene, camera);
 }
 
-// Arrancar todo al cargar
-init();
+function takeDamage() {
+  if (!canTakeDamage) return;
+  canTakeDamage = false;
+  timeLeft -= 8;
+  damageEl.style.opacity = '1';
+  setTimeout(() => { damageEl.style.opacity = '0'; }, 200);
+  setTimeout(() => { canTakeDamage = true; }, 1500);
+}
+
+function winGame() {
+  playing = false;
+  controls.unlock();
+  overlay.innerHTML = `
+    <h1 style="background: linear-gradient(90deg, #00ff88, #00ffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">¡ESCAPASTE!</h1>
+    <p>Recolectaste ${collected} cristales</p>
+    <p>Tiempo restante: ${Math.ceil(timeLeft)}s</p>
+    <button onclick="location.reload()">Jugar de nuevo</button>
+  `;
+  overlay.classList.remove('hidden');
+  hud.classList.add('hidden');
+  timerEl.classList.add('hidden');
+  objectiveEl.classList.add('hidden');
+  crosshair.classList.add('hidden');
+}
+
+function loseGame(reason) {
+  playing = false;
+  controls.unlock();
+  overlay.innerHTML = `
+    <h1 style="background: linear-gradient(90deg, #ff0000, #ff8800); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">DERROTA</h1>
+    <p>${reason}</p>
+    <p>Cristales: ${collected} / ${crystals.length}</p>
+    <button onclick="location.reload()">Reintentar</button>
+  `;
+  overlay.classList.remove('hidden');
+  hud.classList.add('hidden');
+  timerEl.classList.add('hidden');
+  objectiveEl.classList.add('hidden');
+  crosshair.classList.add('hidden');
+}
+
+// ===== Resize =====
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 </script>
 </body>
 </html>
