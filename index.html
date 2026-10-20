@@ -2,225 +2,143 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Blox Fruits — Prototipo</title>
+<title>Blox Fruits — Prototipo (Standalone)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { overflow: hidden; font-family: 'Trebuchet MS', sans-serif; background: #87CEEB; cursor: crosshair; }
   canvas { display: block; }
-
-  #hud {
-    position: fixed; inset: 0; pointer-events: none; z-index: 10;
-  }
-
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
   #stats {
     position: absolute; top: 15px; left: 15px;
-    background: rgba(0,0,0,0.75);
-    border: 3px solid #2d2d2d;
-    border-radius: 10px;
-    padding: 12px 18px;
-    color: white;
-    min-width: 220px;
-    box-shadow: 0 4px 0 #000;
+    background: rgba(0,0,0,0.75); border: 3px solid #2d2d2d;
+    border-radius: 10px; padding: 12px 18px; color: white;
+    min-width: 220px; box-shadow: 0 4px 0 #000;
   }
   #stats .row { display: flex; justify-content: space-between; margin: 3px 0; font-size: 14px; }
   #stats .label { color: #aaa; }
   #stats .value { color: #ffd700; font-weight: bold; }
-
   #level-badge {
     position: absolute; top: 15px; right: 15px;
     background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid #fff;
-    border-radius: 10px;
-    padding: 8px 20px;
-    color: white;
-    text-align: center;
+    border: 3px solid #fff; border-radius: 10px;
+    padding: 8px 20px; color: white; text-align: center;
     box-shadow: 0 4px 0 #000, 0 0 20px rgba(255,100,0,0.5);
   }
   #level-badge .num { font-size: 26px; font-weight: 900; line-height: 1; }
   #level-badge .txt { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
-
   #xp-bar-container {
     position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
     width: 400px; max-width: 80vw;
   }
   #xp-bar-bg {
-    height: 22px;
-    background: rgba(0,0,0,0.8);
-    border: 3px solid #2d2d2d;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 3px 0 #000;
+    height: 22px; background: rgba(0,0,0,0.8);
+    border: 3px solid #2d2d2d; border-radius: 12px;
+    overflow: hidden; box-shadow: 0 3px 0 #000;
   }
   #xp-bar-fill {
-    height: 100%;
-    width: 0%;
+    height: 100%; width: 0%;
     background: linear-gradient(90deg, #00ff88, #00ccff);
     transition: width 0.4s;
-    box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
   }
   #xp-bar-text {
-    text-align: center;
-    color: white;
-    font-size: 12px;
-    margin-top: 4px;
-    text-shadow: 0 1px 3px #000;
+    text-align: center; color: white; font-size: 12px;
+    margin-top: 4px; text-shadow: 0 1px 3px #000;
   }
-
   #fruit-slot {
     position: absolute; bottom: 20px; right: 20px;
-    width: 80px; height: 80px;
-    background: rgba(0,0,0,0.8);
-    border: 3px solid #ff0044;
-    border-radius: 10px;
+    width: 80px; height: 80px; background: rgba(0,0,0,0.8);
+    border: 3px solid #ff0044; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 42px;
-    box-shadow: 0 4px 0 #000, 0 0 20px rgba(255,0,68,0.5);
+    font-size: 42px; box-shadow: 0 4px 0 #000, 0 0 20px rgba(255,0,68,0.5);
   }
   #fruit-slot.empty { border-color: #333; opacity: 0.5; box-shadow: 0 4px 0 #000; }
   #fruit-slot .cooldown {
-    position: absolute; inset: 0;
-    background: rgba(0,0,0,0.8);
-    display: none;
-    align-items: center; justify-content: center;
-    color: white; font-size: 20px; font-weight: bold;
-    border-radius: 7px;
+    position: absolute; inset: 0; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center;
+    color: white; font-size: 20px; font-weight: bold; border-radius: 7px;
   }
   #fruit-slot .cooldown.active { display: flex; }
-
   #crosshair {
     position: absolute; top: 50%; left: 50%;
-    width: 20px; height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid rgba(255,255,255,0.8);
-    border-radius: 50%;
+    width: 20px; height: 20px; margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255,255,255,0.8); border-radius: 50%;
     box-shadow: 0 0 8px #000;
   }
-  #crosshair::before, #crosshair::after {
-    content: '';
-    position: absolute;
-    background: white;
-  }
-  #crosshair::before { left: 50%; top: -6px; width: 2px; height: 32px; margin-left: -1px; }
-  #crosshair::after { top: 50%; left: -6px; height: 2px; width: 32px; margin-top: -1px; }
-
   #kill-feed {
-    position: absolute; top: 100px; right: 15px;
-    width: 260px;
-    color: white;
+    position: absolute; top: 100px; right: 15px; width: 260px; color: white;
   }
   .kill-msg {
-    background: rgba(0,0,0,0.75);
-    border-left: 4px solid #ff0044;
-    padding: 6px 12px;
-    margin-bottom: 4px;
-    border-radius: 4px;
-    font-size: 13px;
-    animation: slideIn 0.3s ease;
+    background: rgba(0,0,0,0.75); border-left: 4px solid #ff0044;
+    padding: 6px 12px; margin-bottom: 4px; border-radius: 4px;
+    font-size: 13px; animation: slideIn 0.3s ease;
   }
   .kill-msg.xp { border-left-color: #00ff88; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-
   #overlay {
     position: fixed; inset: 0;
     background: linear-gradient(135deg, #0a0a2a, #1a0a3a);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    z-index: 100;
-    color: white;
-    text-align: center;
+    z-index: 100; color: white; text-align: center;
     transition: opacity 0.6s;
   }
   #overlay.fade { opacity: 0; pointer-events: none; }
   #overlay h1 {
-    font-size: 64px;
-    font-weight: 900;
+    font-size: 64px; font-weight: 900;
     background: linear-gradient(135deg, #ff6b00, #ff0044, #ffaa00);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 4px;
-    text-shadow: 0 0 40px rgba(255,100,0,0.3);
-    margin-bottom: 10px;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; letter-spacing: 4px; margin-bottom: 10px;
   }
   #overlay h2 {
-    font-size: 18px;
-    color: #88aaff;
-    letter-spacing: 8px;
-    text-transform: uppercase;
-    margin-bottom: 40px;
-    font-weight: 400;
+    font-size: 18px; color: #88aaff; letter-spacing: 8px;
+    text-transform: uppercase; margin-bottom: 40px; font-weight: 400;
   }
   #overlay .controls-box {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px 40px;
-    padding: 25px 50px;
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 10px 40px; padding: 25px 50px;
     background: rgba(0,0,0,0.5);
     border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 15px;
-    margin-bottom: 30px;
+    border-radius: 15px; margin-bottom: 30px;
   }
   #overlay .ctrl { display: flex; align-items: center; gap: 12px; font-size: 14px; }
   #overlay .key {
-    display: inline-block; min-width: 55px;
-    padding: 5px 10px;
+    display: inline-block; min-width: 55px; padding: 5px 10px;
     background: linear-gradient(180deg, #444, #222);
-    border: 2px solid #666;
-    border-radius: 5px;
-    font-family: monospace;
-    font-weight: bold;
-    font-size: 12px;
-    box-shadow: 0 2px 0 #111;
+    border: 2px solid #666; border-radius: 5px;
+    font-family: monospace; font-weight: bold; font-size: 12px;
   }
   #overlay button {
-    padding: 16px 55px;
-    font-size: 18px;
-    font-weight: 900;
+    padding: 16px 55px; font-size: 18px; font-weight: 900;
     letter-spacing: 3px;
     background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid #fff;
-    border-radius: 10px;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 6px 0 #7a0018, 0 0 30px rgba(255,100,0,0.5);
-    transition: transform 0.1s, box-shadow 0.1s;
-    text-transform: uppercase;
-    font-family: inherit;
+    border: 3px solid #fff; border-radius: 10px; color: white;
+    cursor: pointer; text-transform: uppercase; font-family: inherit;
   }
-  #overlay button:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #7a0018, 0 0 40px rgba(255,100,0,0.7); }
-  #overlay button:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a0018; }
-
+  #overlay button:hover { transform: translateY(-2px); }
   #gameover {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: none;
-    flex-direction: column;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    display: none; flex-direction: column;
     align-items: center; justify-content: center;
     z-index: 200; color: white; text-align: center;
   }
   #gameover.active { display: flex; }
-  #gameover h1 { font-size: 60px; color: #ff0044; text-shadow: 0 0 30px rgba(255,0,68,0.7); margin-bottom: 15px; }
-  #gameover p { font-size: 18px; color: #aaa; margin: 5px 0; }
+  #gameover h1 { font-size: 60px; color: #ff0044; margin-bottom: 15px; }
   #gameover button {
-    margin-top: 30px;
-    padding: 15px 45px;
-    font-size: 16px;
-    font-weight: bold;
-    background: linear-gradient(135deg, #ff6b00, #ff0044);
-    border: 3px solid white;
-    border-radius: 8px;
-    color: white; cursor: pointer;
+    margin-top: 30px; padding: 15px 45px; font-size: 16px;
+    font-weight: bold; background: linear-gradient(135deg, #ff6b00, #ff0044);
+    border: 3px solid white; border-radius: 8px; color: white; cursor: pointer;
   }
-
-  #mobile-warn {
-    position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-    background: rgba(255,100,0,0.9); color: #000; padding: 8px 20px;
-    border-radius: 20px; font-size: 12px; font-weight: bold;
-    z-index: 300; display: none;
+  #loading {
+    position: fixed; inset: 0; background: #0a0a2a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300; color: #88aaff; font-size: 20px;
+    transition: opacity 0.5s;
   }
 </style>
 </head>
 <body>
+
+<div id="loading">Cargando Three.js...</div>
 
 <div id="hud">
   <div id="stats">
@@ -229,24 +147,19 @@
     <div class="row"><span class="label">Fruit</span><span class="value" id="stat-fruit">1</span></div>
     <div class="row"><span class="label">HP</span><span class="value" id="stat-hp">100/100</span></div>
   </div>
-
   <div id="level-badge">
     <div class="num" id="level-num">1</div>
     <div class="txt">Nivel</div>
   </div>
-
   <div id="kill-feed"></div>
-
   <div id="xp-bar-container">
     <div id="xp-bar-bg"><div id="xp-bar-fill"></div></div>
     <div id="xp-bar-text">0 / 100 XP</div>
   </div>
-
   <div id="fruit-slot" class="empty">
     <span id="fruit-icon">🍎</span>
     <div class="cooldown" id="fruit-cooldown"></div>
   </div>
-
   <div id="crosshair"></div>
 </div>
 
@@ -257,7 +170,7 @@
     <div class="ctrl"><span class="key">W A S D</span> Moverse</div>
     <div class="ctrl"><span class="key">RATÓN</span> Cámara</div>
     <div class="ctrl"><span class="key">CLICK</span> Atacar</div>
-    <div class="ctrl"><span class="key">F</span> Usar fruta</div>
+    <div class="ctrl"><span class="key">F</span> Fruta</div>
     <div class="ctrl"><span class="key">ESPACIO</span> Saltar</div>
     <div class="ctrl"><span class="key">SHIFT</span> Correr</div>
   </div>
@@ -271,58 +184,39 @@
   <button onclick="location.reload()">REINTENTAR</button>
 </div>
 
-<div id="mobile-warn">Mejor en PC con teclado y ratón</div>
+<!-- Three.js como script clásico global (funciona sin servidor) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+<script>
+// Esperar a que Three.js cargue
+function checkThree() {
+  if (typeof THREE === 'undefined') {
+    setTimeout(checkThree, 100);
+    return;
   }
+  document.getElementById('loading').style.display = 'none';
+  initGame();
 }
-</script>
+checkThree();
 
-<script type="module">
-import * as THREE from 'three';
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+function initGame() {
 
 // ============================================================
 // CONFIG
 // ============================================================
 const CFG = {
-  gravity: 25,
-  jumpForce: 9,
-  walkSpeed: 6,
-  runSpeed: 11,
-  playerRadius: 0.5,
-  playerHeight: 2.4,
-  attackRange: 3.5,
-  attackDamage: 25,
-  fruitDamage: 60,
-  fruitRadius: 6,
-  fruitCooldown: 8,
+  gravity: 25, jumpForce: 9,
+  walkSpeed: 6, runSpeed: 11,
+  attackRange: 3.5, attackDamage: 25,
+  fruitDamage: 60, fruitRadius: 6, fruitCooldown: 8,
   islandSize: 40,
 };
 
-// ============================================================
-// ESTADO
-// ============================================================
 const S = {
-  playing: false,
-  level: 1,
-  xp: 0,
-  xpToNext: 100,
-  hp: 100,
-  maxHp: 100,
-  hasFruit: false,
-  fruitCooldown: 0,
-  meleeStat: 1,
-  defenseStat: 1,
-  fruitStat: 1,
-  velocityY: 0,
-  onGround: true,
-  lastAttack: 0,
-  kills: 0,
+  playing: false, level: 1, xp: 0, xpToNext: 100,
+  hp: 100, maxHp: 100, hasFruit: false, fruitCooldown: 0,
+  meleeStat: 1, defenseStat: 1, fruitStat: 1,
+  velocityY: 0, onGround: true, lastAttack: 0, kills: 0,
 };
 
 // ============================================================
@@ -339,15 +233,11 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// ============================================================
 // LUCES
-// ============================================================
 const hemi = new THREE.HemisphereLight(0xffffff, 0x556677, 1.2);
 scene.add(hemi);
-
 const sun = new THREE.DirectionalLight(0xfff5e0, 2.2);
 sun.position.set(30, 50, 20);
 sun.castShadow = true;
@@ -359,37 +249,22 @@ sun.shadow.camera.bottom = -60;
 sun.shadow.camera.near = 1;
 sun.shadow.camera.far = 150;
 scene.add(sun);
-
 const amb = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(amb);
 
 // ============================================================
-// CÁMARA TERCERA PERSONA
+// CÁMARA 3ª PERSONA
 // ============================================================
-const cameraRig = new THREE.Object3D();
-scene.add(cameraRig);
-cameraRig.add(camera);
-
-const controls = new PointerLockControls(camera, renderer.domElement);
-// Desactivamos los controles de rotación de PointerLockControls y usamos nuestra propia lógica
-controls.enabled = false;
-
-let camYaw = 0;
-let camPitch = 0.3;
-const camDistance = 8;
-const camHeight = 3;
+let camYaw = 0, camPitch = 0.3;
+const camDistance = 8, camHeight = 3;
 
 // ============================================================
-// MUNDO: ISLA + AGUA + PALMERAS
+// MUNDO
 // ============================================================
-// Agua infinita
 const waterGeo = new THREE.PlaneGeometry(1000, 1000);
 const waterMat = new THREE.MeshStandardMaterial({
-  color: 0x1a6fa8,
-  roughness: 0.15,
-  metalness: 0.5,
-  transparent: true,
-  opacity: 0.9,
+  color: 0x1a6fa8, roughness: 0.15, metalness: 0.5,
+  transparent: true, opacity: 0.9,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
 water.rotation.x = -Math.PI / 2;
@@ -397,7 +272,6 @@ water.position.y = -1.5;
 water.receiveShadow = true;
 scene.add(water);
 
-// Arena de la isla
 const sandGeo = new THREE.CylinderGeometry(CFG.islandSize, CFG.islandSize * 0.9, 3, 32);
 const sandMat = new THREE.MeshStandardMaterial({ color: 0xf2d896, roughness: 0.95 });
 const island = new THREE.Mesh(sandGeo, sandMat);
@@ -405,7 +279,6 @@ island.position.y = -1.5;
 island.receiveShadow = true;
 scene.add(island);
 
-// Hierba interior
 const grassGeo = new THREE.CylinderGeometry(CFG.islandSize * 0.7, CFG.islandSize * 0.68, 0.3, 32);
 const grassMat = new THREE.MeshStandardMaterial({ color: 0x5cb85c, roughness: 0.9 });
 const grass = new THREE.Mesh(grassGeo, grassMat);
@@ -413,21 +286,21 @@ grass.position.y = 0.15;
 grass.receiveShadow = true;
 scene.add(grass);
 
-// Palmeras low-poly
+// Palmeras
 function createPalmTree(x, z) {
   const group = new THREE.Group();
-
-  const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 6, 6);
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 1 });
-  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.4, 6, 6),
+    new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 1 })
+  );
   trunk.position.y = 3;
   trunk.castShadow = true;
   group.add(trunk);
-
   for (let i = 0; i < 6; i++) {
-    const leafGeo = new THREE.ConeGeometry(0.6, 2.5, 4);
-    const leafMat = new THREE.MeshStandardMaterial({ color: 0x2d7a2d, roughness: 0.8 });
-    const leaf = new THREE.Mesh(leafGeo, leafMat);
+    const leaf = new THREE.Mesh(
+      new THREE.ConeGeometry(0.6, 2.5, 4),
+      new THREE.MeshStandardMaterial({ color: 0x2d7a2d, roughness: 0.8 })
+    );
     const angle = (i / 6) * Math.PI * 2;
     leaf.position.set(Math.cos(angle) * 0.9, 6, Math.sin(angle) * 0.9);
     leaf.rotation.z = Math.cos(angle) * 0.6;
@@ -435,27 +308,26 @@ function createPalmTree(x, z) {
     leaf.castShadow = true;
     group.add(leaf);
   }
-
   group.position.set(x, 0.3, z);
   group.rotation.y = Math.random() * Math.PI * 2;
   scene.add(group);
 }
-
 for (let i = 0; i < 14; i++) {
-  const angle = Math.random() * Math.PI * 2;
+  const a = Math.random() * Math.PI * 2;
   const r = 10 + Math.random() * 22;
-  createPalmTree(Math.cos(angle) * r, Math.sin(angle) * r);
+  createPalmTree(Math.cos(a) * r, Math.sin(a) * r);
 }
 
-// Rocas decorativas
+// Rocas
 for (let i = 0; i < 10; i++) {
   const size = 0.5 + Math.random() * 1.2;
-  const rockGeo = new THREE.DodecahedronGeometry(size, 0);
-  const rockMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 1 });
-  const rock = new THREE.Mesh(rockGeo, rockMat);
-  const angle = Math.random() * Math.PI * 2;
+  const rock = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(size, 0),
+    new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 1 })
+  );
+  const a = Math.random() * Math.PI * 2;
   const r = 5 + Math.random() * 25;
-  rock.position.set(Math.cos(angle) * r, size * 0.5 + 0.3, Math.sin(angle) * r);
+  rock.position.set(Math.cos(a) * r, size * 0.5 + 0.3, Math.sin(a) * r);
   rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
   rock.castShadow = true;
   rock.receiveShadow = true;
@@ -463,265 +335,165 @@ for (let i = 0; i < 10; i++) {
 }
 
 // ============================================================
-// PERSONAJE ESTILO ROBLOX (BLOQUES)
+// PERSONAJE
 // ============================================================
 const player = new THREE.Group();
 scene.add(player);
 
 function blockPart(w, h, d, color) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1 });
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1 })
+  );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
 }
 
-// Cuerpo
-const torso = blockPart(1.4, 1.6, 0.7, 0x3366cc);
-torso.position.y = 2.0;
-player.add(torso);
+const torso = blockPart(1.4, 1.6, 0.7, 0x3366cc); torso.position.y = 2.0; player.add(torso);
+const head = blockPart(1.2, 1.2, 1.2, 0xffcc99); head.position.y = 3.6; player.add(head);
+const eyeL = blockPart(0.15, 0.15, 0.05, 0x000000); eyeL.position.set(-0.25, 3.75, 0.61); player.add(eyeL);
+const eyeR = blockPart(0.15, 0.15, 0.05, 0x000000); eyeR.position.set(0.25, 3.75, 0.61); player.add(eyeR);
+const armL = blockPart(0.5, 1.6, 0.5, 0xffcc99); armL.position.set(-1.05, 2.0, 0); player.add(armL);
+const armR = blockPart(0.5, 1.6, 0.5, 0xffcc99); armR.position.set(1.05, 2.0, 0); player.add(armR);
+const legL = blockPart(0.55, 1.6, 0.55, 0x224488); legL.position.set(-0.35, 0.4, 0); player.add(legL);
+const legR = blockPart(0.55, 1.6, 0.55, 0x224488); legR.position.set(0.35, 0.4, 0); player.add(legR);
 
-// Cabeza (más grande, como Roblox)
-const head = blockPart(1.2, 1.2, 1.2, 0xffcc99);
-head.position.y = 3.6;
-player.add(head);
-
-// Ojos
-const eyeL = blockPart(0.15, 0.15, 0.05, 0x000000);
-eyeL.position.set(-0.25, 3.75, 0.61);
-player.add(eyeL);
-const eyeR = blockPart(0.15, 0.15, 0.05, 0x000000);
-eyeR.position.set(0.25, 3.75, 0.61);
-player.add(eyeR);
-
-// Brazos
-const armL = blockPart(0.5, 1.6, 0.5, 0xffcc99);
-armL.position.set(-1.05, 2.0, 0);
-player.add(armL);
-const armR = blockPart(0.5, 1.6, 0.5, 0xffcc99);
-armR.position.set(1.05, 2.0, 0);
-player.add(armR);
-
-// Piernas
-const legL = blockPart(0.55, 1.6, 0.55, 0x224488);
-legL.position.set(-0.35, 0.4, 0);
-player.add(legL);
-const legR = blockPart(0.55, 1.6, 0.55, 0x224488);
-legR.position.set(0.35, 0.4, 0);
-player.add(legR);
-
-// Espada (oculta hasta tener fruta... en realidad espada = melee)
 const sword = new THREE.Group();
-const bladeGeo = new THREE.BoxGeometry(0.12, 1.6, 0.12);
-const bladeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2, emissive: 0x333333 });
-const blade = new THREE.Mesh(bladeGeo, bladeMat);
+const blade = new THREE.Mesh(
+  new THREE.BoxGeometry(0.12, 1.6, 0.12),
+  new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 })
+);
 blade.position.y = 1.2;
 sword.add(blade);
-const hiltGeo = new THREE.BoxGeometry(0.5, 0.12, 0.12);
-const hiltMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
-const hilt = new THREE.Mesh(hiltGeo, hiltMat);
+const hilt = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 0.12, 0.12),
+  new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
+);
 sword.add(hilt);
-sword.position.set(0, 0, 0);
 armR.add(sword);
 
 player.position.set(0, 0.3, 0);
 
 // ============================================================
-// ENEMIGOS (PIRATAS NPC)
+// ENEMIGOS
 // ============================================================
 const enemies = [];
-
 function createEnemy(x, z) {
   const group = new THREE.Group();
+  const body = blockPart(1.3, 1.5, 0.7, 0x8b0000); body.position.y = 1.9; group.add(body);
+  const eHead = blockPart(1.1, 1.1, 1.1, 0xffcc99); eHead.position.y = 3.4; group.add(eHead);
+  const bandana = blockPart(1.15, 0.3, 1.15, 0xff0000); bandana.position.y = 3.9; group.add(bandana);
+  const eArmL = blockPart(0.45, 1.5, 0.45, 0xffcc99); eArmL.position.set(-1.0, 1.9, 0); group.add(eArmL);
+  const eArmR = blockPart(0.45, 1.5, 0.45, 0xffcc99); eArmR.position.set(1.0, 1.9, 0); group.add(eArmR);
+  const eLegL = blockPart(0.5, 1.5, 0.5, 0x333333); eLegL.position.set(-0.32, 0.35, 0); group.add(eLegL);
+  const eLegR = blockPart(0.5, 1.5, 0.5, 0x333333); eLegR.position.set(0.32, 0.35, 0); group.add(eLegR);
 
-  const body = blockPart(1.3, 1.5, 0.7, 0x8b0000);
-  body.position.y = 1.9;
-  group.add(body);
-
-  const eHead = blockPart(1.1, 1.1, 1.1, 0xffcc99);
-  eHead.position.y = 3.4;
-  group.add(eHead);
-
-  // Pañuelo pirata
-  const bandana = blockPart(1.15, 0.3, 1.15, 0xff0000);
-  bandana.position.y = 3.9;
-  group.add(bandana);
-
-  const eArmL = blockPart(0.45, 1.5, 0.45, 0xffcc99);
-  eArmL.position.set(-1.0, 1.9, 0);
-  group.add(eArmL);
-
-  const eArmR = blockPart(0.45, 1.5, 0.45, 0xffcc99);
-  eArmR.position.set(1.0, 1.9, 0);
-  group.add(eArmR);
-
-  const eLegL = blockPart(0.5, 1.5, 0.5, 0x333333);
-  eLegL.position.set(-0.32, 0.35, 0);
-  group.add(eLegL);
-
-  const eLegR = blockPart(0.5, 1.5, 0.5, 0x333333);
-  eLegR.position.set(0.32, 0.35, 0);
-  group.add(eLegR);
-
-  group.position.set(x, 0.3, z);
-
-  // Barra de vida
   const hpBarBg = new THREE.Mesh(
     new THREE.PlaneGeometry(1.5, 0.2),
-    new THREE.MeshBasicMaterial({ color: 0x000000 })
+    new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide })
   );
   hpBarBg.position.y = 4.5;
   group.add(hpBarBg);
   const hpBarFill = new THREE.Mesh(
     new THREE.PlaneGeometry(1.5, 0.2),
-    new THREE.MeshBasicMaterial({ color: 0xff2222 })
+    new THREE.MeshBasicMaterial({ color: 0xff2222, side: THREE.DoubleSide })
   );
   hpBarFill.position.y = 4.5;
   hpBarFill.position.z = 0.01;
   group.add(hpBarFill);
 
-  const enemy = {
-    mesh: group,
-    hp: 60,
-    maxHp: 60,
-    speed: 2 + Math.random() * 1.5,
-    xpValue: 25,
-    hpBarFill,
-    attackCooldown: 0,
-    alive: true,
-    deathTimer: 0,
-  };
+  group.position.set(x, 0.3, z);
 
+  const enemy = {
+    mesh: group, hp: 60, maxHp: 60,
+    speed: 2 + Math.random() * 1.5, xpValue: 25,
+    hpBarFill, attackCooldown: 0, alive: true, deathTimer: 0,
+  };
   group.userData.enemy = enemy;
   scene.add(group);
   enemies.push(enemy);
-
-  return enemy;
 }
-
-// Spawn inicial
 for (let i = 0; i < 5; i++) {
-  const angle = Math.random() * Math.PI * 2;
+  const a = Math.random() * Math.PI * 2;
   const r = 12 + Math.random() * 15;
-  createEnemy(Math.cos(angle) * r, Math.sin(angle) * r);
+  createEnemy(Math.cos(a) * r, Math.sin(a) * r);
 }
 
 // ============================================================
-// FRUTA DEL DIABLO EN EL SUELO
+// FRUTA
 // ============================================================
 const fruit = new THREE.Group();
-const fruitBodyGeo = new THREE.SphereGeometry(0.6, 12, 12);
-const fruitMat = new THREE.MeshStandardMaterial({
-  color: 0xff3300,
-  emissive: 0xff6600,
-  emissiveIntensity: 1.5,
-  roughness: 0.3,
-  metalness: 0.2,
-});
-const fruitBody = new THREE.Mesh(fruitBodyGeo, fruitMat);
+const fruitBody = new THREE.Mesh(
+  new THREE.SphereGeometry(0.6, 12, 12),
+  new THREE.MeshStandardMaterial({
+    color: 0xff3300, emissive: 0xff6600, emissiveIntensity: 1.5,
+    roughness: 0.3, metalness: 0.2,
+  })
+);
 fruit.add(fruitBody);
-
-// Patrón de espiral
 for (let i = 0; i < 8; i++) {
-  const stripeGeo = new THREE.TorusGeometry(0.6, 0.05, 6, 12, Math.PI);
-  const stripeMat = new THREE.MeshStandardMaterial({ color: 0x220000, emissive: 0xff0000, emissiveIntensity: 0.5 });
-  const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+  const stripe = new THREE.Mesh(
+    new THREE.TorusGeometry(0.6, 0.05, 6, 12, Math.PI),
+    new THREE.MeshStandardMaterial({ color: 0x220000, emissive: 0xff0000, emissiveIntensity: 0.5 })
+  );
   stripe.rotation.x = Math.PI / 2;
   stripe.rotation.z = (i / 8) * Math.PI * 2;
   stripe.position.y = -0.4 + i * 0.1;
   fruit.add(stripe);
 }
-
-// Hoja
-const stemGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.3, 4);
-const stemMat = new THREE.MeshStandardMaterial({ color: 0x4a2a0a });
-const stem = new THREE.Mesh(stemGeo, stemMat);
-stem.position.y = 0.7;
-fruit.add(stem);
-
 fruit.position.set(8, 1.2, 8);
 scene.add(fruit);
-
-// Luz de la fruta
 const fruitLight = new THREE.PointLight(0xff4400, 2, 8);
 fruitLight.position.copy(fruit.position);
 scene.add(fruitLight);
 
 // ============================================================
-// PROYECTILES DE FUEGO
+// FIREBALLS + EXPLOSIONES
 // ============================================================
 const fireballs = [];
+const explosions = [];
+
+function randRange(a, b) { return a + Math.random() * (b - a); }
 
 function spawnFireball() {
   if (!S.hasFruit || S.fruitCooldown > 0) return;
-
-  const geo = new THREE.SphereGeometry(0.4, 12, 12);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xff4400,
-    emissive: 0xff6600,
-    emissiveIntensity: 3,
-    transparent: true,
-    opacity: 0.95,
-  });
-  const ball = new THREE.Mesh(geo, mat);
-
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 12, 12),
+    new THREE.MeshStandardMaterial({
+      color: 0xff4400, emissive: 0xff6600, emissiveIntensity: 3,
+      transparent: true, opacity: 0.95,
+    })
+  );
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
-
   ball.position.copy(player.position).add(new THREE.Vector3(0, 2.5, 0));
   ball.position.add(dir.clone().multiplyScalar(1.5));
-
   const light = new THREE.PointLight(0xff4400, 3, 10);
   light.position.copy(ball.position);
   scene.add(light);
-
   scene.add(ball);
-
-  fireballs.push({
-    mesh: ball,
-    light,
-    velocity: dir.clone().multiplyScalar(25),
-    life: 3,
-  });
-
+  fireballs.push({ mesh: ball, light, velocity: dir.clone().multiplyScalar(25), life: 3 });
   S.fruitCooldown = CFG.fruitCooldown;
   updateFruitUI();
 }
 
-// ============================================================
-// PARTÍCULAS DE EXPLOSIÓN
-// ============================================================
-const explosions = [];
-
 function spawnExplosion(pos) {
-  const geo = new THREE.SphereGeometry(0.2, 8, 8);
-  const mat = new THREE.MeshBasicMaterial({
-    color: 0xffaa00,
-    transparent: true,
-    opacity: 1,
-  });
-
   for (let i = 0; i < 15; i++) {
-    const mesh = new THREE.Mesh(geo, mat.clone());
-    mesh.position.copy(pos);
-    const vel = new THREE.Vector3(
-      randRange(-6, 6),
-      randRange(-2, 8),
-      randRange(-6, 6)
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.2, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 1 })
     );
+    mesh.position.copy(pos);
+    const vel = new THREE.Vector3(randRange(-6, 6), randRange(-2, 8), randRange(-6, 6));
     scene.add(mesh);
     explosions.push({ mesh, vel, life: 0.8 });
   }
-
-  // Luz de explosión
   const eLight = new THREE.PointLight(0xff6600, 5, 12);
   eLight.position.copy(pos);
   scene.add(eLight);
   setTimeout(() => scene.remove(eLight), 200);
 }
-
-function randRange(min, max) { return min + Math.random() * (max - min); }
 
 // ============================================================
 // CONTROLES
@@ -735,15 +507,10 @@ document.addEventListener('keydown', e => {
     S.velocityY = CFG.jumpForce;
     S.onGround = false;
   }
-  if (e.code === 'KeyF' && S.playing) {
-    spawnFireball();
-  }
+  if (e.code === 'KeyF' && S.playing) spawnFireball();
 });
 document.addEventListener('keyup', e => keys[e.code] = false);
-
-renderer.domElement.addEventListener('mousedown', e => {
-  if (e.button === 0) mouseDown = true;
-});
+renderer.domElement.addEventListener('mousedown', e => { if (e.button === 0) mouseDown = true; });
 renderer.domElement.addEventListener('mouseup', () => mouseDown = false);
 
 document.addEventListener('mousemove', e => {
@@ -752,7 +519,6 @@ document.addEventListener('mousemove', e => {
   camPitch -= e.movementY * 0.0025;
   camPitch = Math.max(-0.2, Math.min(1.2, camPitch));
 });
-
 renderer.domElement.addEventListener('click', () => {
   if (S.playing) renderer.domElement.requestPointerLock();
 });
@@ -764,96 +530,66 @@ function attack() {
   const now = performance.now();
   if (now - S.lastAttack < 400) return;
   S.lastAttack = now;
-
-  // Animación de la espada
-  const originalRot = sword.rotation.z;
   sword.rotation.z = -1.2;
   setTimeout(() => sword.rotation.z = 0, 100);
 
-  // Detectar enemigos en rango
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
-  dir.y = 0;
-  dir.normalize();
+  dir.y = 0; dir.normalize();
 
   for (const e of enemies) {
     if (!e.alive) continue;
-    const toEnemy = e.mesh.position.clone().sub(player.position);
-    toEnemy.y = 0;
-    const dist = toEnemy.length();
+    const to = e.mesh.position.clone().sub(player.position);
+    to.y = 0;
+    const dist = to.length();
     if (dist > CFG.attackRange) continue;
-    toEnemy.normalize();
-    if (toEnemy.dot(dir) > 0.3) {
-      damageEnemy(e, CFG.attackDamage * S.meleeStat);
-    }
+    to.normalize();
+    if (to.dot(dir) > 0.3) damageEnemy(e, CFG.attackDamage * S.meleeStat);
   }
 }
 
-function damageEnemy(enemy, damage) {
-  enemy.hp -= damage;
-
-  // Flash rojo
+function damageEnemy(enemy, dmg) {
+  enemy.hp -= dmg;
   enemy.mesh.traverse(child => {
     if (child.material && child.material.color) {
       const orig = child.material.color.getHex();
       child.material.color.setHex(0xffffff);
-      child.material.emissive?.setHex(0xff0000);
-      setTimeout(() => {
-        child.material.color.setHex(orig);
-        child.material.emissive?.setHex(0x000000);
-      }, 100);
+      setTimeout(() => child.material.color.setHex(orig), 100);
     }
   });
-
-  // Actualizar barra
   const pct = Math.max(0, enemy.hp / enemy.maxHp);
   enemy.hpBarFill.scale.x = pct;
   enemy.hpBarFill.position.x = -(1 - pct) * 0.75;
-
-  if (enemy.hp <= 0) {
-    killEnemy(enemy);
-  }
+  if (enemy.hp <= 0) killEnemy(enemy);
 }
 
 function killEnemy(enemy) {
   enemy.alive = false;
   enemy.deathTimer = 1.5;
-
   spawnExplosion(enemy.mesh.position.clone().setY(2));
-
-  // XP
   addXP(enemy.xpValue);
   S.kills++;
-
   addKillFeed(`+${enemy.xpValue} XP — Pirata derrotado`, true);
 }
 
 function addXP(amount) {
   S.xp += amount;
-  if (S.xp >= S.xpToNext) {
-    levelUp();
+  while (S.xp >= S.xpToNext) {
+    S.xp -= S.xpToNext;
+    S.level++;
+    S.xpToNext = Math.floor(S.xpToNext * 1.4);
+    S.maxHp += 20;
+    S.hp = S.maxHp;
+    const roll = Math.floor(Math.random() * 3);
+    if (roll === 0) S.meleeStat += 0.5;
+    else if (roll === 1) S.defenseStat += 0.5;
+    else S.fruitStat += 0.5;
+    addKillFeed(`⭐ ¡NIVEL ${S.level}!`, true);
   }
   updateStatsUI();
 }
 
-function levelUp() {
-  S.xp -= S.xpToNext;
-  S.level++;
-  S.xpToNext = Math.floor(S.xpToNext * 1.4);
-  S.maxHp += 20;
-  S.hp = S.maxHp;
-
-  // Aumentar stats aleatoriamente
-  const roll = Math.floor(Math.random() * 3);
-  if (roll === 0) S.meleeStat += 0.5;
-  else if (roll === 1) S.defenseStat += 0.5;
-  else S.fruitStat += 0.5;
-
-  addKillFeed(`⭐ ¡NIVEL ${S.level}!`, true);
-  updateStatsUI();
-}
-
-function addKillFeed(text, isXp = false) {
+function addKillFeed(text, isXp) {
   const feed = document.getElementById('kill-feed');
   const msg = document.createElement('div');
   msg.className = 'kill-msg' + (isXp ? ' xp' : '');
@@ -871,9 +607,7 @@ function updateStatsUI() {
   document.getElementById('stat-fruit').textContent = S.fruitStat.toFixed(1);
   document.getElementById('stat-hp').textContent = `${Math.ceil(S.hp)}/${S.maxHp}`;
   document.getElementById('level-num').textContent = S.level;
-
-  const xpPct = (S.xp / S.xpToNext) * 100;
-  document.getElementById('xp-bar-fill').style.width = xpPct + '%';
+  document.getElementById('xp-bar-fill').style.width = ((S.xp / S.xpToNext) * 100) + '%';
   document.getElementById('xp-bar-text').textContent = `${S.xp} / ${S.xpToNext} XP`;
 }
 
@@ -881,16 +615,13 @@ function updateFruitUI() {
   const slot = document.getElementById('fruit-slot');
   const icon = document.getElementById('fruit-icon');
   const cd = document.getElementById('fruit-cooldown');
-
   if (S.hasFruit) {
     slot.classList.remove('empty');
     icon.textContent = '🔥';
     if (S.fruitCooldown > 0) {
       cd.classList.add('active');
       cd.textContent = Math.ceil(S.fruitCooldown);
-    } else {
-      cd.classList.remove('active');
-    }
+    } else cd.classList.remove('active');
   } else {
     slot.classList.add('empty');
     icon.textContent = '🍎';
@@ -907,17 +638,14 @@ let animTime = 0;
 function animate() {
   if (!S.playing) return;
   requestAnimationFrame(animate);
-
   const dt = Math.min(clock.getDelta(), 0.1);
   animTime += dt;
 
-  // ===== MOVIMIENTO =====
+  // Movimiento
   const isRun = keys['ShiftLeft'] || keys['ShiftRight'];
   const speed = isRun ? CFG.runSpeed : CFG.walkSpeed;
-
   const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
   const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw));
-
   const moveVec = new THREE.Vector3();
   if (keys['KeyW']) moveVec.add(forward);
   if (keys['KeyS']) moveVec.sub(forward);
@@ -930,8 +658,6 @@ function animate() {
     player.position.x += moveVec.x * speed * dt;
     player.position.z += moveVec.z * speed * dt;
     isMoving = true;
-
-    // Rotar personaje hacia la dirección
     const targetRot = Math.atan2(moveVec.x, moveVec.z);
     let diff = targetRot - player.rotation.y;
     while (diff > Math.PI) diff -= Math.PI * 2;
@@ -939,7 +665,7 @@ function animate() {
     player.rotation.y += diff * dt * 12;
   }
 
-  // Animación de caminar
+  // Animación caminar
   if (isMoving) {
     const freq = isRun ? 16 : 10;
     const swing = Math.sin(animTime * freq) * 0.5;
@@ -957,94 +683,76 @@ function animate() {
   // Gravedad
   S.velocityY -= CFG.gravity * dt;
   player.position.y += S.velocityY * dt;
-
   if (player.position.y <= 0.3) {
     player.position.y = 0.3;
     S.velocityY = 0;
     S.onGround = true;
   }
 
-  // Límite de la isla
-  const distFromCenter = Math.hypot(player.position.x, player.position.z);
-  if (distFromCenter > CFG.islandSize - 1) {
-    const angle = Math.atan2(player.position.z, player.position.x);
-    player.position.x = Math.cos(angle) * (CFG.islandSize - 1);
-    player.position.z = Math.sin(angle) * (CFG.islandSize - 1);
+  // Límites isla
+  const dC = Math.hypot(player.position.x, player.position.z);
+  if (dC > CFG.islandSize - 1) {
+    const a = Math.atan2(player.position.z, player.position.x);
+    player.position.x = Math.cos(a) * (CFG.islandSize - 1);
+    player.position.z = Math.sin(a) * (CFG.islandSize - 1);
   }
 
-  // ===== CÁMARA TERCERA PERSONA =====
-  const camTargetX = player.position.x + Math.sin(camYaw) * camDistance * Math.cos(camPitch);
-  const camTargetZ = player.position.z + Math.cos(camYaw) * camDistance * Math.cos(camPitch);
-  const camTargetY = player.position.y + camHeight + Math.sin(camPitch) * camDistance;
-
-  camera.position.x = lerp(camera.position.x, camTargetX, dt * 10);
-  camera.position.y = lerp(camera.position.y, camTargetY, dt * 10);
-  camera.position.z = lerp(camera.position.z, camTargetZ, dt * 10);
+  // Cámara
+  const camTX = player.position.x + Math.sin(camYaw) * camDistance * Math.cos(camPitch);
+  const camTZ = player.position.z + Math.cos(camYaw) * camDistance * Math.cos(camPitch);
+  const camTY = player.position.y + camHeight + Math.sin(camPitch) * camDistance;
+  camera.position.x += (camTX - camera.position.x) * Math.min(1, dt * 10);
+  camera.position.y += (camTY - camera.position.y) * Math.min(1, dt * 10);
+  camera.position.z += (camTZ - camera.position.z) * Math.min(1, dt * 10);
   camera.lookAt(player.position.x, player.position.y + 2.2, player.position.z);
 
-  // ===== ATAQUE (mantener click) =====
+  // Ataque
   if (mouseDown) attack();
 
-  // ===== FRUTA DEL DIABLO =====
+  // Fruta
   fruit.rotation.y += dt * 2;
   fruit.position.y = 1.2 + Math.sin(animTime * 2) * 0.2;
   fruitLight.position.copy(fruit.position);
   fruitLight.intensity = 2 + Math.sin(animTime * 4) * 0.8;
-
-  if (!S.hasFruit) {
-    const d = player.position.distanceTo(fruit.position);
-    if (d < 1.8) {
-      S.hasFruit = true;
-      S.fruitStat = 2;
-      scene.remove(fruit);
-      scene.remove(fruitLight);
-      addKillFeed('🔥 ¡Fruta Mera Mera obtenida! Pulsa F', true);
-      updateFruitUI();
-      updateStatsUI();
-    }
+  if (!S.hasFruit && player.position.distanceTo(fruit.position) < 1.8) {
+    S.hasFruit = true;
+    S.fruitStat = 2;
+    scene.remove(fruit);
+    scene.remove(fruitLight);
+    addKillFeed('🔥 ¡Fruta Mera Mera obtenida! Pulsa F', true);
+    updateFruitUI();
+    updateStatsUI();
   }
 
-  // ===== COOLDOWN FRUTA =====
+  // Cooldown fruta
   if (S.fruitCooldown > 0) {
     S.fruitCooldown -= dt;
-    if (S.fruitCooldown <= 0) {
-      S.fruitCooldown = 0;
-      updateFruitUI();
-    } else {
-      updateFruitUI();
-    }
+    if (S.fruitCooldown <= 0) S.fruitCooldown = 0;
+    updateFruitUI();
   }
 
-  // ===== FIREBALLS =====
+  // Fireballs
   for (let i = fireballs.length - 1; i >= 0; i--) {
     const fb = fireballs[i];
     fb.life -= dt;
     fb.mesh.position.add(fb.velocity.clone().multiplyScalar(dt));
     fb.light.position.copy(fb.mesh.position);
-
-    // Colisión con enemigos
     let hit = false;
     for (const e of enemies) {
       if (!e.alive) continue;
       const d = fb.mesh.position.distanceTo(e.mesh.position.clone().setY(2));
       if (d < 1.5) {
         damageEnemy(e, CFG.fruitDamage * S.fruitStat);
-
-        // Daño en área
         for (const e2 of enemies) {
           if (!e2.alive || e2 === e) continue;
           const d2 = fb.mesh.position.distanceTo(e2.mesh.position.clone().setY(2));
-          if (d2 < CFG.fruitRadius) {
-            damageEnemy(e2, CFG.fruitDamage * 0.5 * S.fruitStat);
-          }
+          if (d2 < CFG.fruitRadius) damageEnemy(e2, CFG.fruitDamage * 0.5 * S.fruitStat);
         }
-
         spawnExplosion(fb.mesh.position.clone());
         hit = true;
         break;
       }
     }
-
     if (hit || fb.life <= 0 || fb.mesh.position.y < 0) {
       if (!hit) spawnExplosion(fb.mesh.position.clone());
       scene.remove(fb.mesh);
@@ -1053,10 +761,9 @@ function animate() {
     }
   }
 
-  // ===== ENEMIGOS =====
+  // Enemigos
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
-
     if (!e.alive) {
       e.deathTimer -= dt;
       e.mesh.scale.y = Math.max(0, e.deathTimer / 1.5);
@@ -1067,19 +774,15 @@ function animate() {
       }
       continue;
     }
-
-    // Perseguir al jugador
-    const toPlayer = player.position.clone().sub(e.mesh.position);
-    toPlayer.y = 0;
-    const distToPlayer = toPlayer.length();
-
-    if (distToPlayer > 1.8) {
-      toPlayer.normalize();
-      e.mesh.position.x += toPlayer.x * e.speed * dt;
-      e.mesh.position.z += toPlayer.z * e.speed * dt;
-      e.mesh.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
+    const toP = player.position.clone().sub(e.mesh.position);
+    toP.y = 0;
+    const dist = toP.length();
+    if (dist > 1.8) {
+      toP.normalize();
+      e.mesh.position.x += toP.x * e.speed * dt;
+      e.mesh.position.z += toP.z * e.speed * dt;
+      e.mesh.rotation.y = Math.atan2(toP.x, toP.z);
     } else {
-      // Atacar
       e.attackCooldown -= dt;
       if (e.attackCooldown <= 0) {
         e.attackCooldown = 1.5;
@@ -1087,11 +790,6 @@ function animate() {
         S.hp -= dmg;
         updateStatsUI();
         addKillFeed(`-${Math.ceil(dmg)} HP`, false);
-
-        // Flash de pantalla
-        document.getElementById('crosshair').style.borderColor = '#ff0000';
-        setTimeout(() => document.getElementById('crosshair').style.borderColor = 'rgba(255,255,255,0.8)', 150);
-
         if (S.hp <= 0) {
           S.hp = 0;
           updateStatsUI();
@@ -1100,19 +798,13 @@ function animate() {
         }
       }
     }
-
-    // Barra de vida mira a cámara
     e.hpBarFill.parent.lookAt(camera.position);
-
-    // Bob
     e.mesh.children.forEach((c, idx) => {
-      if (idx >= 4 && idx <= 5) {
-        c.rotation.x = Math.sin(animTime * 8 + i) * 0.4;
-      }
+      if (idx >= 4 && idx <= 5) c.rotation.x = Math.sin(animTime * 8 + i) * 0.4;
     });
   }
 
-  // ===== EXPLOSIONES =====
+  // Explosiones
   for (let i = explosions.length - 1; i >= 0; i--) {
     const ex = explosions[i];
     ex.life -= dt;
@@ -1126,12 +818,11 @@ function animate() {
     }
   }
 
-  // ===== SPAWN DE ENEMIGOS =====
+  // Spawn
   if (enemies.filter(e => e.alive).length < 5 && Math.random() < dt * 0.3) {
-    const angle = Math.random() * Math.PI * 2;
+    const a = Math.random() * Math.PI * 2;
     const r = 20 + Math.random() * 10;
-    const ex = Math.cos(angle) * r;
-    const ez = Math.sin(angle) * r;
+    const ex = Math.cos(a) * r, ez = Math.sin(a) * r;
     if (Math.hypot(ex - player.position.x, ez - player.position.z) > 10) {
       createEnemy(ex, ez);
     }
@@ -1140,11 +831,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function lerp(a, b, t) { return a + (b - a) * Math.min(1, t); }
-
-// ============================================================
-// FIN DEL JUEGO
-// ============================================================
 function gameOver() {
   S.playing = false;
   document.exitPointerLock();
@@ -1152,35 +838,25 @@ function gameOver() {
   document.getElementById('gameover').classList.add('active');
 }
 
-// ============================================================
 // START
-// ============================================================
 document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('overlay').classList.add('fade');
   setTimeout(() => document.getElementById('overlay').style.display = 'none', 600);
-
   S.playing = true;
   camera.position.set(0, 8, 12);
   updateStatsUI();
   updateFruitUI();
-
   setTimeout(() => renderer.domElement.requestPointerLock(), 100);
-
   clock.start();
   animate();
 });
 
-// Resize
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
 
-// Móvil warning
-if (/Mobi|Android/i.test(navigator.userAgent)) {
-  document.getElementById('mobile-warn').style.display = 'block';
-  setTimeout(() => document.getElementById('mobile-warn').style.display = 'none', 5000);
 }
 </script>
 </body>
