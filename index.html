@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blox Fruits 3D Lite - Vista Acostada</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
     body { overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; }
     #ui {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -14,49 +15,58 @@
         background: rgba(0,0,0,0.75);
         border: 2px solid #ff9f1c;
         border-radius: 10px;
-        padding: 12px 16px;
+        padding: 10px 14px;
         pointer-events: auto;
     }
-    #stats { position: absolute; top: 15px; left: 15px; min-width: 220px; }
+    #stats { position: absolute; top: 15px; left: 15px; min-width: 200px; }
     #inventory {
         position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-        display: flex; gap: 10px; padding: 10px 15px;
+        display: flex; gap: 8px; padding: 8px 12px;
     }
     .fruit-slot {
-        width: 60px; height: 60px; border: 2px solid #555; border-radius: 10px;
+        width: 50px; height: 50px; border: 2px solid #555; border-radius: 8px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 28px; cursor: pointer; background: rgba(0,0,0,0.6);
+        font-size: 24px; cursor: pointer; background: rgba(0,0,0,0.6);
         transition: 0.2s;
     }
-    .fruit-slot:hover, .fruit-slot.selected {
-        border-color: #ff9f1c; transform: scale(1.1);
-        box-shadow: 0 0 15px #ff9f1c;
-    }
-    #mission { position: absolute; top: 15px; right: 15px; max-width: 280px; }
+    .fruit-slot.selected { border-color: #ff9f1c; box-shadow: 0 0 15px #ff9f1c; }
+    #mission { position: absolute; top: 15px; right: 15px; max-width: 250px; }
     #message {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        font-size: 32px; font-weight: bold; text-shadow: 0 0 15px black;
+        position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 28px; font-weight: bold; text-shadow: 0 0 15px black;
         opacity: 0; transition: opacity 0.4s; text-align: center;
-        pointer-events: none;
+        pointer-events: none; width: 100%;
     }
     #startScreen, #gameOverScreen {
         position: absolute; inset: 0; background: rgba(0,0,0,0.9);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        z-index: 20; text-align: center;
+        z-index: 20; text-align: center; padding: 20px;
     }
-    h1 { font-size: 48px; color: #ff9f1c; margin-bottom: 10px; text-shadow: 0 0 25px #ff9f1c; }
+    h1 { font-size: 36px; color: #ff9f1c; margin-bottom: 10px; text-shadow: 0 0 25px #ff9f1c; }
     button {
         background: linear-gradient(90deg, #ff9f1c, #ff6b00);
-        border: none; color: white; font-size: 20px; font-weight: bold;
-        padding: 15px 45px; border-radius: 30px; cursor: pointer; margin-top: 20px;
-        transition: 0.2s;
+        border: none; color: white; font-size: 18px; font-weight: bold;
+        padding: 12px 35px; border-radius: 25px; cursor: pointer; margin-top: 15px;
+        pointer-events: auto;
     }
-    button:hover { transform: scale(1.05); }
-    .bar { height: 16px; background: #333; border-radius: 8px; overflow: hidden; margin-top: 4px; }
-    .bar-fill { height: 100%; border-radius: 8px; transition: width 0.2s; }
+    .bar { height: 14px; background: #333; border-radius: 7px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; border-radius: 7px; transition: width 0.2s; }
     #healthFill { background: linear-gradient(90deg, #e74c3c, #c0392b); }
     #xpFill { background: linear-gradient(90deg, #3498db, #2980b9); }
-    .label { font-size: 13px; margin-bottom: 2px; display: flex; justify-content: space-between; }
+    .label { font-size: 12px; margin-bottom: 2px; display: flex; justify-content: space-between; }
+    
+    /* Controles táctiles para móvil */
+    #mobileControls {
+        position: absolute; bottom: 90px; left: 0; width: 100%;
+        display: flex; justify-content: space-between; padding: 0 20px;
+        pointer-events: none; z-index: 15; display: none;
+    }
+    .touch-btn {
+        width: 60px; height: 60px; background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 24px; pointer-events: auto;
+    }
 </style>
 </head>
 <body>
@@ -64,41 +74,47 @@
     <div id="stats" class="panel">
         <div class="label"><span>❤️ Vida</span><span id="hpText">100/100</span></div>
         <div class="bar"><div class="bar-fill" id="healthFill" style="width:100%"></div></div>
-        <div class="label" style="margin-top:10px"><span>⭐ Nivel <span id="lvlText">1</span></span><span id="xpText">0/100</span></div>
+        <div class="label" style="margin-top:8px"><span>⭐ Nivel <span id="lvlText">1</span></span><span id="xpText">0/100</span></div>
         <div class="bar"><div class="bar-fill" id="xpFill" style="width:0%"></div></div>
-        <div style="margin-top:10px; font-size:14px">
-            🍎 Frutas: <span id="fruitCount">0</span> &nbsp;|&nbsp; 👾 Eliminados: <span id="kills">0</span>
+        <div style="margin-top:8px; font-size:12px">
+            🍎 Frutas: <span id="fruitCount">0</span> | 👾 Kills: <span id="kills">0</span>
         </div>
     </div>
 
     <div id="mission" class="panel">
-        <b>📜 Misión actual</b><br>
-        <span id="missionText">Recoge 2 frutas del diablo</span>
+        <b>📜 Misión</b><br>
+        <span id="missionText">Recoge 2 frutas</span>
     </div>
 
     <div id="inventory" class="panel"></div>
     <div id="message"></div>
 </div>
 
+<div id="mobileControls">
+    <div class="touch-btn" id="btnLeft">←</div>
+    <div style="display:flex; gap:10px;">
+        <div class="touch-btn" id="btnAttack">⚔️</div>
+        <div class="touch-btn" id="btnJump">⬆️</div>
+    </div>
+    <div class="touch-btn" id="btnRight">→</div>
+</div>
+
 <div id="startScreen">
-    <h1>BLOX FRUITS 3D LITE</h1>
-    <p style="color:#aaa; margin:10px 0 25px; font-size:16px">
-        Vista acostada (cámara lateral)<br>
-        Islas + Dragón + Inventario + Combate
+    <h1>BLOX FRUITS 3D</h1>
+    <p style="color:#aaa; margin:10px 0; font-size:14px">
+        Vista Acostada (Lateral) - 3D Real
     </p>
-    <button onclick="startGame()">¡ENTRAR AL MUNDO!</button>
-    <div style="margin-top:30px; color:#bbb; font-size:14px; line-height:1.7">
-        <b>Controles:</b><br>
-        WASD → Mover &nbsp;&nbsp; Espacio → Saltar<br>
-        Ratón → Girar cámara &nbsp;&nbsp; Clic izquierdo → Atacar<br>
-        Clic en las frutas del inventario → Equipar
+    <button onclick="startGame()">¡JUGAR!</button>
+    <div style="margin-top:20px; color:#bbb; font-size:12px; line-height:1.5">
+        <b>PC:</b> WASD mover, Espacio saltar, Clic atacar.<br>
+        <b>Móvil:</b> Usa los botones en pantalla.
     </div>
 </div>
 
 <div id="gameOverScreen" style="display:none">
-    <h1>FIN DEL JUEGO</h1>
-    <div id="finalStats" style="font-size:18px; margin:20px 0; color:#ddd"></div>
-    <button onclick="location.reload()">Jugar de nuevo</button>
+    <h1>GAME OVER</h1>
+    <div id="finalStats" style="font-size:16px; margin:20px 0; color:#ddd"></div>
+    <button onclick="location.reload()">Reintentar</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -116,70 +132,62 @@ let missionIndex = 0;
 let dragon = null;
 let dragonSpawned = false;
 
-// Ángulos de cámara acostada (lateral)
-let camYaw = Math.PI;   // ángulo horizontal alrededor del jugador
-let camPitch = 0.15;    // ligera inclinación hacia abajo
-const CAM_DISTANCE = 10;
-const CAM_HEIGHT = 3.5;
-const CAM_LOOK_HEIGHT = 1.8;
+// Cámara acostada
+let camYaw = 0; 
+let camPitch = 0.2; 
+const CAM_DISTANCE = 12;
+const CAM_HEIGHT = 4;
+
+// Movimiento táctil
+let touchLeft = false, touchRight = false;
 
 const FRUIT_TYPES = {
     flame:  { emoji: "🔥", name: "Fuego",  color: 0xff5722, damage: 22 },
     ice:    { emoji: "❄️", name: "Hielo",  color: 0x00bcd4, damage: 18 },
     quake:  { emoji: "💥", name: "Temblor",color: 0x9c27b0, damage: 35 },
     light:  { emoji: "⚡", name: "Luz",    color: 0xffeb3b, damage: 15 },
-    dark:   { emoji: "🌑", name: "Oscura", color: 0x7b1fa2, damage: 20 },
-    dragon: { emoji: "🐉", name: "Dragón", color: 0xff1744, damage: 40 }
+    dark:   { emoji: "🌑", name: "Oscura", color: 0x7b1fa2, damage: 20 }
 };
 
 const MISSIONS = [
-    { text: "Recoge 2 frutas del diablo", check: () => inventory.length >= 2 },
+    { text: "Recoge 2 frutas", check: () => inventory.length >= 2 },
     { text: "Elimina 8 enemigos", check: () => kills >= 8 },
     { text: "Alcanza el nivel 3", check: () => level >= 3 },
-    { text: "¡Derrota al Dragón!", check: () => dragon && dragon.health <= 0 }
+    { text: "Derrota al Dragón", check: () => dragon && dragon.health <= 0 }
 ];
 
 // ===================== INICIALIZACIÓN =====================
 function init() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB);
-    scene.fog = new THREE.Fog(0x87CEEB, 80, 300);
+    scene.background = new THREE.Color(0x87CEEB); // Cielo azul
+    scene.fog = new THREE.Fog(0x87CEEB, 60, 250);
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
     // Luces
     const ambient = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
     sun.position.set(50, 100, 50);
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
-    sun.shadow.camera.left = -150;
-    sun.shadow.camera.right = 150;
-    sun.shadow.camera.top = 150;
-    sun.shadow.camera.bottom = -150;
-    sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 300;
+    sun.shadow.mapSize.width = 1024;
+    sun.shadow.mapSize.height = 1024;
     scene.add(sun);
 
-    // Crear mundo
+    // Mundo
     createIsland(0, 0, 60, 0x4caf50);
-    createIsland(120, 30, 40, 0x8bc34a);
-    createIsland(-90, -40, 35, 0x66bb6a);
     createWater();
     createTrees();
     createPlayer();
     
     clock = new THREE.Clock();
 
-    // Eventos
+    // Eventos PC
     document.addEventListener('keydown', e => keys[e.code] = true);
     document.addEventListener('keyup', e => keys[e.code] = false);
     document.addEventListener('mousemove', onMouseMove);
@@ -189,7 +197,64 @@ function init() {
     });
     window.addEventListener('resize', onResize);
 
+    // Eventos Móvil (Táctil)
+    if ('ontouchstart' in window) {
+        document.getElementById('mobileControls').style.display = 'flex';
+        
+        // Botones táctiles
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        const btnJump = document.getElementById('btnJump');
+        const btnAttack = document.getElementById('btnAttack');
+
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); touchLeft = true; });
+        btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); touchLeft = false; });
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); touchRight = true; });
+        btnRight.addEventListener('touchend', (e) => { e.preventDefault(); touchRight = false; });
+        
+        btnJump.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            keys['Space'] = true; 
+            setTimeout(() => keys['Space'] = false, 150);
+        });
+        
+        btnAttack.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            attack(); 
+        });
+    }
+
     animate();
+}
+
+// NOTA: Se usa CylinderGeometry porque CapsuleGeometry no existe en r128
+function createPlayer() {
+    player = new THREE.Group();
+
+    // Cuerpo (Cilindro en lugar de cápsula)
+    const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.6, 0.6, 1.5, 8),
+        new THREE.MeshStandardMaterial({ color: 0x42a5f5 })
+    );
+    body.position.y = 1.4;
+    body.castShadow = true;
+    player.add(body);
+
+    // Cabeza
+    const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0xffccbc })
+    );
+    head.position.y = 2.5;
+    head.castShadow = true;
+    player.add(head);
+
+    player.position.set(0, 1, 0);
+    player.velocity = new THREE.Vector3();
+    player.canJump = true;
+    player.attackCooldown = 0;
+    player.rotation.y = 0;
+    scene.add(player);
 }
 
 function createIsland(x, z, radius, color) {
@@ -201,40 +266,32 @@ function createIsland(x, z, radius, color) {
     island.castShadow = true;
     scene.add(island);
 
-    for (let i = 0; i < 6; i++) {
-        const r = 1.5 + Math.random() * 2;
-        const rock = new THREE.Mesh(
-            new THREE.DodecahedronGeometry(r),
+    forceive (let i = 0; i <Shadow 10; i++) {
+        const r = = 1.5 + Math.random() * 2;
+        const true rock = new THREE.Mesh(
+            new;
+ THREE.DodecahedronGeometry(r),
             new THREE.MeshStandardMaterial({ color: 0x795548 })
         );
         const angle = Math.random() * Math.PI * 2;
         const dist = Math.random() * (radius - 8);
         rock.position.set(x + Math.cos(angle)*dist, r*0.6, z + Math.sin(angle)*dist);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
         rock.castShadow = true;
-        rock.receiveShadow = true;
         scene.add(rock);
     }
 }
 
 function createWater() {
     const waterGeo = new THREE.PlaneGeometry(600, 600);
-    const waterMat = new THREE.MeshStandardMaterial({ 
-        color: 0x0288d1, transparent: true, opacity: 0.85 
-    });
+    const waterMat = new THREE.MeshStandardMaterial({ color: 0x0288d1 });
     const water = new THREE.Mesh(waterGeo, waterMat);
     water.rotation.x = -Math.PI / 2;
     water.position.y = -3;
-    water.receiveShadow = true;
-    scene.add(water);
+    water.re    scene.add(water);
 }
 
 function createTrees() {
-    const positions = [
-        [15, 10], [-20, 15], [25, -18], [-10, -25],
-        [100, 40], [130, 15], [110, 50],
-        [-80, -30], [-100, -50]
-    ];
+    const positions = [[15, 10], [-20, 15], [25, -18], [-10, -25]];
     positions.forEach(([x, z]) => {
         const trunk = new THREE.Mesh(
             new THREE.CylinderGeometry(0.6, 0.8, 5),
@@ -242,191 +299,62 @@ function createTrees() {
         );
         trunk.position.set(x, 2.5, z);
         trunk.castShadow = true;
-        trunk.receiveShadow = true;
         scene.add(trunk);
+        
         const leaves = new THREE.Mesh(
-            new THREE.SphereGeometry(3.5, 8, 8),
+            new THREE.SphereGeometry(3, 8, 8),
             new THREE.MeshStandardMaterial({ color: 0x2e7d32 })
         );
         leaves.position.set(x, 6.5, z);
         leaves.castShadow = true;
-        leaves.receiveShadow = true;
         scene.add(leaves);
     });
 }
 
-function createPlayer() {
-    player = new THREE.Group();
-
-    const body = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.6, 1.2, 4, 8),
-        new THREE.MeshStandardMaterial({ color: 0x42a5f5 })
-    );
-    body.position.y = 1.4;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    player.add(body);
-
-    const head = new THREE.Mesh(
-        new THREE.SphereGeometry(0.45, 16, 16),
-        new THREE.MeshStandardMaterial({ color: 0xffccbc })
-    );
-    head.position.y = 2.5;
-    head.castShadow = true;
-    head.receiveShadow = true;
-    player.add(head);
-
-    player.position.set(0, 1, 0);
-    player.velocity = new THREE.Vector3();
-    player.canJump = true;
-    player.attackCooldown = 0;
-    player.rotation.y = 0;
-    scene.add(player);
-}
-
-// ===================== ENEMIGOS Y DRAGÓN =====================
-function spawnEnemy() {
-    const enemy = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.5, 1, 4, 8),
-        new THREE.MeshStandardMaterial({ color: 0xe53935 })
-    );
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 30 + Math.random() * 40;
-    enemy.position.set(
-        player.position.x + Math.cos(angle) * dist,
-        1.5,
-        player.position.z + Math.sin(angle) * dist
-    );
-    enemy.health = 40 + level * 10;
-    enemy.maxHealth = enemy.health;
-    enemy.speed = 3 + Math.random();
-    enemy.castShadow = true;
-    enemy.receiveShadow = true;
-    scene.add(enemy);
-    enemies.push(enemy);
-}
-
-function spawnDragon() {
-    dragon = new THREE.Group();
-
-    const body = new THREE.Mesh(
-        new THREE.SphereGeometry(3, 16, 16),
-        new THREE.MeshStandardMaterial({ color: 0xc62828 })
-    );
-    body.scale.set(1.5, 1, 2);
-    body.castShadow = true;
-    dragon.add(body);
-
-    const head = new THREE.Mesh(
-        new THREE.ConeGeometry(1.5, 3, 8),
-        new THREE.MeshStandardMaterial({ color: 0xb71c1c })
-    );
-    head.rotation.x = Math.PI / 2;
-    head.position.set(0, 0.5, 4);
-    head.castShadow = true;
-    dragon.add(head);
-
-    const wingGeo = new THREE.BoxGeometry(8, 0.3, 3);
-    const wingMat = new THREE.MeshStandardMaterial({ color: 0x880e4f });
-    const wingL = new THREE.Mesh(wingGeo, wingMat);
-    wingL.position.set(-4, 1, 0);
-    wingL.rotation.z = 0.4;
-    wingL.castShadow = true;
-    dragon.add(wingL);
-    const wingR = new THREE.Mesh(wingGeo, wingMat);
-    wingR.position.set(4, 1, 0);
-    wingR.rotation.z = -0.4;
-    wingR.castShadow = true;
-    dragon.add(wingR);
-
-    dragon.position.set(80, 15, 20);
-    dragon.health = 300;
-    dragon.maxHealth = 300;
-    dragon.speed = 4;
-    dragon.phase = 0;
-    scene.add(dragon);
-    dragonSpawned = true;
-    showMessage("¡UN DRAGÓN HA APARECIDO!");
-}
-
-// ===================== FRUTAS =====================
-function spawnFruit() {
-    const types = Object.keys(FRUIT_TYPES).filter(t => t !== "dragon");
-    const type = types[Math.floor(Math.random() * types.length)];
-    const fruitData = FRUIT_TYPES[type];
-
-    const fruit = new THREE.Mesh(
-        new THREE.SphereGeometry(0.7, 16, 16),
-        new THREE.MeshStandardMaterial({ 
-            color: fruitData.color, 
-            emissive: fruitData.color, 
-            emissiveIntensity: 0.4 
-        })
-    );
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 10 + Math.random() * 35;
-    fruit.position.set(
-        player.position.x + Math.cos(angle) * dist,
-        1.5,
-        player.position.z + Math.sin(angle) * dist
-    );
-    fruit.userData = { type };
-    fruit.castShadow = true;
-    scene.add(fruit);
-    fruits.push(fruit);
-}
-
-// ===================== LÓGICA DEL JUEGO =====================
+// ===================== LÓGICA =====================
 function startGame() {
     document.getElementById('startScreen').style.display = 'none';
     gameState = "playing";
-    renderer.domElement.requestPointerLock();
     
-    for (let i = 0; i < 5; i++) spawnEnemy();
-    for (let i = 0; i < 3; i++) spawnFruit();
+    // En móvil no bloqueamos el puntero, en PC sí
+    if (!('ontouchstart' in window)) {
+        renderer.domElement.requestPointerLock();
+    }
+    
+    for (let i = 0; i < 4; i++) spawnEnemy();
+    for (let i = 0; i < 2; i++) spawnFruit();
     
     updateUI();
-    showMessage("¡Bienvenido al mundo!");
+    showMessage("¡Bienvenido!");
 }
 
 function updatePlayer(delta) {
-    if (!isLocked) return;
+    if (gameState !== "playing") return;
 
-    const speed = 12;
-    // Direcciones relativas a la cámara (vista acostada = movimiento en el plano XZ)
-    const forward = new THREE.Vector3(
-        Math.sin(camYaw),
-        0,
-        Math.cos(camYaw)
-    ).normalize();
-    const right = new THREE.Vector3(
-        Math.cos(camYaw),
-        0,
-        -Math.sin(camYaw)
-    ).normalize();
+    const speed = 10;
+    let moveX = 0;
 
-    const direction = new THREE.Vector3();
-    if (keys['KeyW']) direction.add(forward);
-    if (keys['KeyS']) direction.sub(forward);
-    if (keys['KeyA']) direction.sub(right);
-    if (keys['KeyD']) direction.add(right);
-
-    if (direction.lengthSq() > 0) {
-        direction.normalize();
-        // El jugador mira hacia donde se mueve
-        player.rotation.y = Math.atan2(direction.x, direction.z);
-    }
+    // Movimiento PC o Móvil
+    if (keys['KeyA'] || touchLeft) moveX -= 1;
+    if (keys['KeyD'] || touchRight) moveX += 1;
     
-    player.velocity.x = direction.x * speed;
-    player.velocity.z = direction.z * speed;
+    // Movimiento lateral (Vista Acostada)
+    // La cámara mira desde el lado, así que el movimiento es en el eje X de la pantalla
+    player.position.x += moveX * speed * delta;
+    
+    // Rotar al jugador hacia donde se mueve
+    if (moveX !== 0) {
+        player.rotation.y = moveX > 0 ? Math.PI / 2 : -Math.PI / 2;
+    }
 
+    // Salto y gravedad
     player.velocity.y -= 25 * delta;
     if (keys['Space'] && player.canJump) {
         player.velocity.y = 12;
         player.canJump = false;
+        keys['Space'] = false;
     }
-
-    player.position.add(player.velocity.clone().multiplyScalar(delta));
+    player.position.y += player.velocity.y * delta;
 
     if (player.position.y < 1) {
         player.position.y = 1;
@@ -434,17 +362,18 @@ function updatePlayer(delta) {
         player.canJump = true;
     }
 
-    // Cámara acostada: posición orbital alrededor del jugador
-    const camX = player.position.x + Math.sin(camYaw) * CAM_DISTANCE;
-    const camZ = player.position.z + Math.cos(camYaw) * CAM_DISTANCE;
-    const camY = player.position.y + CAM_HEIGHT + Math.sin(camPitch) * 4;
+    // Cámara Acostada (Lateral)
+    // Posicionamos la cámara al lado del jugador, mirando hacia el centro
+    const camTargetX = player.position.x;
+    const camTargetZ = player.position.z;
     
-    camera.position.set(camX, camY, camZ);
-    camera.lookAt(
-        player.position.x,
-        player.position.y + CAM_LOOK_HEIGHT,
-        player.position.z
-    );
+    // La cámara se coloca a la derecha o izquierda dependiendo del yaw
+    const camX = camTargetX + Math.sin(camYaw) * CAM_DISTANCE;
+    const camZ = camTargetZ + Math.cos(camYaw) * CAM_DISTANCE;
+    const camY = player.position.y + CAM_HEIGHT + (camPitch * 5);
+    
+    camera.position.lerp(new THREE.Vector3(camX, camY, camZ), 0.1);
+    camera.lookAt(player.position.x, player.position.y + 1.5, player.position.z);
 
     if (player.attackCooldown > 0) player.attackCooldown -= delta;
 }
@@ -454,7 +383,7 @@ function attack() {
     player.attackCooldown = 0.4;
 
     const fruit = equippedFruit ? FRUIT_TYPES[equippedFruit] : null;
-    const damage = fruit ? fruit.damage + level * 3 : 12 + level * 2;
+    const damage = fruit ? fruit.damage : 15;
     const color = fruit ? fruit.color : 0xffffff;
 
     const proj = new THREE.Mesh(
@@ -464,16 +393,56 @@ function attack() {
     proj.position.copy(player.position);
     proj.position.y += 1.5;
     
-    // Dispara en la dirección en que mira el jugador
+    // Dispara en la dirección en la que mira el jugador
     const dir = new THREE.Vector3(
         Math.sin(player.rotation.y),
         0,
         Math.cos(player.rotation.y)
     );
-    proj.userData = { velocity: dir.multiplyScalar(40), damage, life: 2 };
+    proj.userData = { velocity: dir.multiplyScalar(30), damage, life: 2 };
     
     scene.add(proj);
     projectiles.push(proj);
+}
+
+function spawnEnemy() {
+    const enemy = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 0.5, 1.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0xe53935 })
+    );
+    const side = Math.random() < 0.5 ? -1 : 1;
+    enemy.position.set(
+        player.position.x + side * (30 + Math.random() * 20),
+        1.5,
+        player.position.z + (Math.random() - 0.5) * 30
+    );
+    enemy.health = 30 + level * 5;
+    enemy.speed = 2 + Math.random();
+    enemy.castShadow = true;
+    scene.add(enemy);
+    enemies.push(enemy);
+}
+
+function spawnFruit() {
+    const types = Object.keys(FRUIT_TYPES);
+    const type = types[Math.floor(Math.random() * types.length)];
+    const fruit = new THREE.Mesh(
+        new THREE.SphereGeometry(0.6, 16, 16),
+        new THREE.MeshStandardMaterial({ 
+            color: FRUIT_TYPES[type].color, 
+            emissive: FRUIT_TYPES[type].color, 
+            emissiveIntensity: 0.5 
+        })
+    );
+    const side = Math.random() < 0.5 ? -1 : 1;
+    fruit.position.set(
+        player.position.x + side * (10 + Math.random() * 15),
+        1.5,
+        player.position.z + (Math.random() - 0.5) * 20
+    );
+    fruit.userData = { type };
+    scene.add(fruit);
+    fruits.push(fruit);
 }
 
 function updateEnemies(delta) {
@@ -485,43 +454,37 @@ function updateEnemies(delta) {
         e.lookAt(player.position);
 
         if (e.position.distanceTo(player.position) < 2) {
-            takeDamage(8 * delta);
+            takeDamage(5 * delta);
         }
 
         if (e.health <= 0) {
             scene.remove(e);
             enemies.splice(i, 1);
             kills++;
-            addXP(25);
-            score += 50;
-            if (Math.random() < 0.3) spawnFruit();
+            addXP(20);
         }
     }
-
-    if (enemies.length < 4 + level && Math.random() < 0.02) spawnEnemy();
+    if (enemies.length < 4 && Math.random() < 0.02) spawnEnemy();
 }
 
-function updateDragon(delta) {
-    if (!dragon || dragon.health <= 0) return;
+function updateFruits() {
+    for (let i = fruits.length - 1; i >= 0; i--) {
+        const f = fruits[i];
+        f.rotation.y += 0.03;
+        f.position.y = 1.5 + Math.sin(Date.now() * 0.005 + i) * 0.2;
 
-    dragon.phase += delta;
-    const radius = 40;
-    dragon.position.x = 80 + Math.cos(dragon.phase * 0.4) * radius;
-    dragon.position.z = 20 + Math.sin(dragon.phase * 0.4) * radius;
-    dragon.position.y = 12 + Math.sin(dragon.phase) * 3;
-    dragon.lookAt(player.position);
-
-    if (Math.random() < 0.01) {
-        const fireball = new THREE.Mesh(
-            new THREE.SphereGeometry(0.8, 8, 8),
-            new THREE.MeshBasicMaterial({ color: 0xff5722 })
-        );
-        fireball.position.copy(dragon.position);
-        const dir = new THREE.Vector3().subVectors(player.position, dragon.position).normalize();
-        fireball.userData = { velocity: dir.multiplyScalar(25), damage: 25, life: 3, fromDragon: true };
-        scene.add(fireball);
-        projectiles.push(fireball);
+        if (f.position.distanceTo(player.position) < 2) {
+            inventory.push(f.userData.type);
+            if (!equippedFruit) equippedFruit = f.userData.type;
+            scene.remove(f);
+            fruits.splice(i, 1);
+            showMessage(`¡Fruta obtenida!`);
+            addXP(20);
+            updateInventoryUI();
+            updateUI();
+        }
     }
+    if (fruits.length < 2 && Math.random() < 0.01) spawnFruit();
 }
 
 function updateProjectiles(delta) {
@@ -530,28 +493,12 @@ function updateProjectiles(delta) {
         p.position.add(p.userData.velocity.clone().multiplyScalar(delta));
         p.userData.life -= delta;
 
-        if (!p.userData.fromDragon) {
-            enemies.forEach(e => {
-                if (p.position.distanceTo(e.position) < 1.5) {
-                    e.health -= p.userData.damage;
-                    p.userData.life = 0;
-                }
-            });
-            if (dragon && dragon.health > 0 && p.position.distanceTo(dragon.position) < 4) {
-                dragon.health -= p.userData.damage;
-                p.userData.life = 0;
-                if (dragon.health <= 0) {
-                    showMessage("¡DRAGÓN DERROTADO!");
-                    addXP(200);
-                    score += 1000;
-                }
-            }
-        } else {
-            if (p.position.distanceTo(player.position) < 2) {
-                takeDamage(p.userData.damage);
+        enemies.forEach(e => {
+            if (p.position.distanceTo(e.position) < 1.5) {
+                e.health -= p.userData.damage;
                 p.userData.life = 0;
             }
-        }
+        });
 
         if (p.userData.life <= 0) {
             scene.remove(p);
@@ -560,61 +507,23 @@ function updateProjectiles(delta) {
     }
 }
 
-function updateFruits() {
-    for (let i = fruits.length - 1; i >= 0; i--) {
-        const f = fruits[i];
-        f.rotation.y += 0.03;
-        f.position.y = 1.5 + Math.sin(Date.now() * 0.005 + i) * 0.3;
-
-        if (f.position.distanceTo(player.position) < 2.5) {
-            const type = f.userData.type;
-            inventory.push(type);
-            if (!equippedFruit) equippedFruit = type;
-            scene.remove(f);
-            fruits.splice(i, 1);
-            showMessage(`¡${FRUIT_TYPES[type].emoji} ${FRUIT_TYPES[type].name} obtenida!`);
-            addXP(30);
-            updateInventoryUI();
-            updateUI();
-        }
-    }
-    if (fruits.length < 3 && Math.random() < 0.008) spawnFruit();
-}
-
 function takeDamage(amount) {
     health -= amount;
-    if (health <= 0) {
-        health = 0;
-        endGame();
-    }
+    if (health <= 0) endGame();
     updateUI();
 }
 
 function addXP(amount) {
     xp += amount;
-    while (xp >= xpNext) {
+    if (xp >= xpNext) {
         xp -= xpNext;
         level++;
-        xpNext = Math.floor(xpNext * 1.4);
-        maxHealth += 20;
-        health = Math.min(health + 30, maxHealth);
-        showMessage(`¡NIVEL ${level}!`);
+        xpNext = Math.floor(xpNext * 1.5);
+        maxHealth += 10;
+        health = maxHealth;
+        showMessage(`¡Nivel ${level}!`);
     }
-    if (level >= 3 && !dragonSpawned) spawnDragon();
     updateUI();
-}
-
-function checkMissions() {
-    if (missionIndex < MISSIONS.length && MISSIONS[missionIndex].check()) {
-        missionIndex++;
-        if (missionIndex < MISSIONS.length) {
-            showMessage("¡Misión completada!");
-            document.getElementById('missionText').textContent = MISSIONS[missionIndex].text;
-        } else {
-            document.getElementById('missionText').textContent = "¡Todas las misiones completadas!";
-            showMessage("¡ERES UN VERDADERO REY DE LOS MARES!");
-        }
-    }
 }
 
 // ===================== UI =====================
@@ -635,11 +544,9 @@ function updateInventoryUI() {
         const slot = document.createElement('div');
         slot.className = 'fruit-slot' + (type === equippedFruit ? ' selected' : '');
         slot.textContent = FRUIT_TYPES[type].emoji;
-        slot.title = FRUIT_TYPES[type].name;
         slot.onclick = () => {
             equippedFruit = type;
             updateInventoryUI();
-            showMessage(`Equipada: ${FRUIT_TYPES[type].emoji} ${FRUIT_TYPES[type].name}`);
         };
         cont.appendChild(slot);
     });
@@ -649,34 +556,24 @@ function showMessage(text) {
     const el = document.getElementById('message');
     el.textContent = text;
     el.style.opacity = 1;
-    setTimeout(() => el.style.opacity = 0, 2000);
+    setTimeout(() => el.style.opacity = 0, 1500);
 }
 
 function endGame() {
     gameState = "gameover";
-    document.exitPointerLock();
-    document.getElementById('finalStats').innerHTML = `
-        Nivel: <b>${level}</b><br>
-        Frutas recogidas: <b>${inventory.length}</b><br>
-        Enemigos eliminados: <b>${kills}</b><br>
-        Puntuación: <b>${score}</b>
-    `;
+    document.getElementById('finalStats').innerHTML = `Nivel: ${level}<br>Kills: ${kills}`;
     document.getElementById('gameOverScreen').style.display = 'flex';
 }
 
 // ===================== EVENTOS =====================
 function onMouseMove(e) {
     if (!isLocked) return;
-    // Vista acostada: el ratón orbita la cámara alrededor del jugador
-    camYaw -= e.movementX * 0.003;
-    camPitch += e.movementY * 0.002;
-    // Limitar el pitch para no dar la vuelta completa
-    camPitch = Math.max(-0.4, Math.min(0.8, camPitch));
+    // Rotar cámara alrededor del jugador
+    camYaw -= e.movementX * 0.005;
 }
 
 function onClick() {
-    if (gameState === "playing" && isLocked) attack();
-    else if (gameState === "playing") renderer.domElement.requestPointerLock();
+    if (gameState === "playing" && !('ontouchstart' in window)) attack();
 }
 
 function onResize() {
@@ -685,7 +582,7 @@ function onResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// ===================== LOOP PRINCIPAL =====================
+// ===================== LOOP =====================
 function animate() {
     requestAnimationFrame(animate);
     const delta = Math.min(clock.getDelta(), 0.1);
@@ -693,16 +590,13 @@ function animate() {
     if (gameState === "playing") {
         updatePlayer(delta);
         updateEnemies(delta);
-        updateDragon(delta);
         updateProjectiles(delta);
         updateFruits();
-        checkMissions();
     }
 
     renderer.render(scene, camera);
 }
 
-// Arrancar
 init();
 </script>
 </body>
