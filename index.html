@@ -3,186 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Blox Fruits - HTML Clone</title>
+<title>Blox Fruits - Réplica HTML</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; font-family: 'Arial', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; font-family: 'Trebuchet MS', sans-serif; }
   body { overflow: hidden; background: #000; width: 100vw; height: 100vh; touch-action: none; }
-  canvas { display: block; }
 
-  /* ===== PANTALLA DE SELECCIÓN (PICK A SIDE) ===== */
+  /* ===== PANTALLA DE SELECCIÓN ===== */
   #menu-screen {
     position: fixed; inset: 0; z-index: 100;
-    background: url('https://images.unsplash.com/photo-1542841791-1925c7e5d3d2?q=80&w=2070&auto=format&fit=crop') center/cover;
+    background: linear-gradient(135deg, #4ca1af, #2c3e50);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  #menu-screen::before {
-    content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+    transition: opacity 0.5s;
   }
   .menu-title {
-    position: relative; z-index: 2;
-    background: rgba(0,0,0,0.7); color: white;
+    background: rgba(0,0,0,0.8); color: white;
     padding: 10px 40px; font-size: 24px; font-weight: bold;
-    border-radius: 8px; margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border-radius: 8px; margin-bottom: 20px; border: 2px solid #555;
   }
-  .cards-container {
-    position: relative; z-index: 2;
-    display: flex; gap: 20px; align-items: center; justify-content: center;
-    width: 90%; max-width: 900px;
-  }
+  .cards-container { display: flex; gap: 20px; align-items: center; justify-content: center; width: 90%; max-width: 800px; }
   .card {
-    width: 45%; max-width: 350px; aspect-ratio: 3/4;
-    border: 4px solid; border-radius: 12px;
-    display: flex; flex-direction: column; overflow: hidden;
-    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
+    width: 45%; max-width: 300px; border: 4px solid; border-radius: 10px;
+    display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow: hidden;
   }
   .card:hover { transform: scale(1.05); }
-  .card-pirate { border-color: #ff3333; background: linear-gradient(to bottom, #7a0000, #300000); box-shadow: 0 0 30px rgba(255,0,0,0.5); }
-  .card-marine { border-color: #3388ff; background: linear-gradient(to bottom, #001a7a, #000033); box-shadow: 0 0 30px rgba(0,100,255,0.5); }
-  
-  .card-img {
-    width: 100%; height: 55%;
-    background-size: cover; background-position: center;
-  }
-  .card-pirate .card-img { background-image: url('https://tr.rbxcdn.com/180DAY-7b96ff082e900c48d01017011316fdb9/420/420/Image/Png/noFilter'); }
-  .card-marine .card-img { background-image: url('https://tr.rbxcdn.com/180DAY-8f5b75f9c0e6c2f3a5c9455fb0b4f1a1/420/420/Image/Png/noFilter'); }
-  
-  .card-title {
-    font-size: 36px; font-weight: 900; color: white;
-    text-align: center; text-transform: uppercase;
-    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-    margin-top: -20px; z-index: 3;
-    background: rgba(0,0,0,0.5); padding: 5px 0;
-  }
-  .card-stats {
-    background: rgba(0,0,0,0.8); color: white;
-    padding: 10px; text-align: center;
-    font-size: 14px; font-weight: bold;
-    border-bottom: 2px solid rgba(255,255,255,0.2);
-  }
-  .card-desc {
-    background: rgba(0,0,0,0.6); color: white;
-    padding: 15px; text-align: center;
-    font-size: 12px; line-height: 1.4;
-    flex: 1; display: flex; align-items: center; justify-content: center;
-  }
-  .vs-text {
-    font-size: 40px; font-weight: 900; color: white;
-    text-shadow: 2px 2px 0 #000; font-style: italic;
-  }
+  .card-pirate { border-color: #ff3333; background: linear-gradient(to bottom, #660000, #220000); }
+  .card-marine { border-color: #3388ff; background: linear-gradient(to bottom, #001155, #000022); }
+  .card-header { height: 150px; background-size: cover; background-position: center; border-bottom: 2px solid rgba(255,255,255,0.2); }
+  .card-title { font-size: 28px; font-weight: 900; color: white; text-align: center; text-shadow: 2px 2px 0 #000; padding: 10px 0; }
+  .card-stats { background: rgba(0,0,0,0.8); color: white; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; }
+  .vs-text { font-size: 36px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000; font-style: italic; }
 
-  /* ===== HUD DE JUEGO ===== */
+  /* ===== MUNDO 3D (CSS) ===== */
+  #world {
+    position: absolute; inset: 0; perspective: 800px; overflow: hidden;
+    background: linear-gradient(to bottom, #87CEEB 0%, #b0e0e6 60%, #deb887 100%);
+  }
+  #camera {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.1s linear;
+  }
+  .face { position: absolute; backface-visibility: hidden; }
+  
+  /* Suelo */
+  .ground { width: 3000px; height: 3000px; background: #7cba5c; transform: rotateX(90deg) translateZ(-1px); left: -1500px; top: -1500px; box-shadow: inset 0 0 200px rgba(0,0,0,0.5); }
+  .path { width: 2000px; height: 300px; background: #d4b88a; transform: rotateX(90deg) translateZ(0px); left: -1000px; top: -150px; }
+
+  /* Construcciones */
+  .building { position: absolute; transform-style: preserve-3d; }
+  .b-face { position: absolute; backface-visibility: hidden; border: 1px solid rgba(0,0,0,0.2); }
+  
+  /* Personaje */
+  #player { position: absolute; width: 0; height: 0; transform-style: preserve-3d; z-index: 100; }
+  .part { position: absolute; border: 2px solid #000; transform-style: preserve-3d; }
+  .head { width: 40px; height: 40px; background: #ffcc99; left: -20px; top: -90px; transform: translateZ(0); }
+  .hair { width: 42px; height: 15px; background: #111; left: -21px; top: -95px; transform: translateZ(1px); }
+  .torso { width: 44px; height: 50px; background: #00ff00; left: -22px; top: -50px; transform: translateZ(0); border-radius: 5px; }
+  .cape { width: 60px; height: 30px; background: #fff; left: -30px; top: -55px; transform: translateZ(-5px); border-radius: 50% 50% 10% 10%; }
+  .leg { width: 18px; height: 40px; background: #111; top: 0px; transform-origin: top center; }
+  .arm { width: 14px; height: 45px; background: #00ff00; top: -50px; transform-origin: top center; }
+  .leg-l { left: -20px; } .leg-r { left: 2px; }
+  .arm-l { left: -36px; } .arm-r { left: 22px; }
+  
+  /* Objetos escenario */
+  .tree { position: absolute; width: 30px; height: 80px; background: #8b5a2b; transform-style: preserve-3d; border: 1px solid #000; }
+  .tree-top { position: absolute; width: 60px; height: 60px; background: #2d7a2d; left: -15px; top: -40px; border-radius: 50%; border: 1px solid #000; box-shadow: inset -10px -10px 20px rgba(0,0,0,0.5); }
+
+  /* ===== HUD ===== */
   #game-ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: none; }
   
-  /* Barra superior */
-  .top-bar {
-    position: absolute; top: 10px; left: 10px; right: 10px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-  }
-  .menu-btn {
-    background: #ffcc00; color: #000; font-weight: bold;
-    border: 2px solid #fff; border-radius: 5px;
-    padding: 5px 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-  }
-  .hud-buttons { display: flex; gap: 10px; }
-  .hud-buttons div {
-    width: 40px; height: 40px; background: rgba(0,0,0,0.5);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 18px; border: 1px solid rgba(255,255,255,0.3);
-  }
-
-  /* Info jugador izquierda */
-  .player-info {
-    position: absolute; top: 60px; left: 15px;
-    display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
-  }
-  .level-txt {
-    color: white; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000;
-  }
-  .xp-bar-bg {
-    width: 150px; height: 12px; background: #222; border: 2px solid #000; border-radius: 6px;
-    position: relative; overflow: hidden;
-  }
-  .xp-bar-fill {
-    width: 60%; height: 100%; background: linear-gradient(90deg, #a000ff, #ff00ff);
-  }
-  .xp-text {
-    position: absolute; top: -2px; left: 0; width: 100%; text-align: center;
-    font-size: 9px; font-weight: bold; color: white; text-shadow: 1px 1px 0 #000;
-  }
-  .money-txt {
-    color: #00ff00; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 0 #000;
-  }
+  /* Top Bar */
+  .top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; }
+  .menu-btn { background: #ffcc00; color: #000; font-weight: bold; border: 2px solid #fff; border-radius: 4px; padding: 5px 20px; font-size: 14px; box-shadow: 0 2px 5px #000; }
+  
+  /* Info Jugador */
+  .player-info { position: absolute; top: 60px; left: 15px; display: flex; flex-direction: column; gap: 4px; text-shadow: 2px 2px 0 #000; }
+  .level-txt { color: white; font-size: 18px; font-weight: bold; }
+  .xp-bar-bg { width: 140px; height: 10px; background: #222; border: 1px solid #000; border-radius: 4px; position: relative; }
+  .xp-bar-fill { width: 60%; height: 100%; background: #a000ff; }
+  .xp-text { position: absolute; top: -2px; width: 100%; text-align: center; font-size: 8px; color: white; font-weight: bold; }
+  .money-txt { color: #00ff00; font-size: 16px; font-weight: bold; }
 
   /* Barras Salud / Energía */
-  .stats-container {
-    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 10px; width: 80%; max-width: 500px;
-  }
-  .stat-bar {
-    flex: 1; height: 30px; border: 2px solid #000; border-radius: 4px;
-    position: relative; overflow: hidden; box-shadow: 0 3px 0 #000;
-  }
-  .health-bar { background: #3a3a3a; }
-  .health-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ff55, #00aa00); transition: width 0.2s; }
-  .energy-bar { background: #3a3a3a; }
-  .energy-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #55ffff, #0088ff); transition: width 0.2s; }
-  
-  .stat-text {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 10px; color: white; font-size: 12px; font-weight: bold;
-    text-shadow: 1px 1px 0 #000;
-  }
-  .stat-label { text-transform: capitalize; }
+  .stats-container { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; width: 90%; max-width: 450px; }
+  .stat-bar { flex: 1; height: 28px; border: 2px solid #000; border-radius: 4px; position: relative; background: #333; box-shadow: 0 3px 0 #000; overflow: hidden; }
+  .health-fill { width: 100%; height: 100%; background: #33ff33; transition: width 0.2s; }
+  .energy-fill { width: 100%; height: 100%; background: #33ffff; transition: width 0.2s; }
+  .stat-text { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; color: white; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 0 #000; }
 
-  /* Barra de Habilidades */
-  .skills-container {
-    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 5px;
-  }
-  .skill-slot {
-    width: 50px; height: 50px; background: #2a2a2a;
-    border: 2px solid #555; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; box-shadow: 0 3px 0 #000;
-  }
-  .skill-slot.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5), 0 3px 0 #000; }
-  .skill-icon { font-size: 28px; }
+  /* Habilidades */
+  .skills-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+  .skill-slot { width: 45px; height: 45px; background: #222; border: 2px solid #555; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 3px 0 #000; }
+  .skill-slot.active { border-color: #fff; background: #444; }
+
+  /* Joystick */
+  .joystick-area { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; pointer-events: auto; }
+  .joystick-knob { position: absolute; top: 50%; left: 50%; width: 45px; height: 45px; margin: -22.5px 0 0 -22.5px; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.6); border-radius: 50%; }
   
-  /* Controles Táctiles */
-  .joystick-area {
-    position: absolute; bottom: 20px; left: 20px;
-    width: 130px; height: 130px;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 50%; pointer-events: auto;
-  }
-  .joystick-knob {
-    position: absolute; top: 50%; left: 50%;
-    width: 50px; height: 50px; margin: -25px 0 0 -25px;
-    background: rgba(255,255,255,0.3);
-    border: 2px solid rgba(255,255,255,0.5);
-    border-radius: 50%;
-  }
-  .jump-btn {
-    position: absolute; bottom: 20px; right: 20px;
-    width: 80px; height: 80px;
-    background: rgba(255,255,255,0.2);
-    border: 3px solid rgba(255,255,255,0.4);
-    border-radius: 50%; pointer-events: auto;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 40px; text-shadow: 0 2px 5px #000;
-  }
-  
+  /* Botón Salto */
+  .jump-btn { position: absolute; bottom: 30px; right: 30px; width: 65px; height: 65px; background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; box-shadow: 0 4px 0 rgba(0,0,0,0.5); }
+  .jump-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.5); }
+
   /* Notificación */
-  #notification {
-    position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.7); color: white; padding: 8px 20px;
-    border-radius: 20px; font-size: 18px; font-weight: bold;
-    opacity: 0; transition: opacity 0.5s; text-shadow: 1px 1px 0 #000;
-  }
+  #notification { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 20px; border-radius: 20px; font-size: 16px; font-weight: bold; opacity: 0; transition: opacity 0.5s; text-shadow: 1px 1px 0 #000; pointer-events: none; border: 2px solid #555; }
 </style>
 </head>
 <body>
@@ -191,46 +115,26 @@
 <div id="menu-screen">
   <div class="menu-title">Pick A Side!</div>
   <div class="cards-container">
-    <!-- Tarjeta Pirata -->
     <div class="card card-pirate" onclick="startGame('Piratas')">
-      <div class="card-img"></div>
+      <div class="card-header" style="background-image: url('https://tr.rbxcdn.com/180DAY-7b96ff082e900c48d01017011316fdb9/420/420/Image/Png/noFilter');"></div>
       <div class="card-title">PIRATAS</div>
       <div class="card-stats">Bounty: $2,503,366</div>
-      <div class="card-desc">
-        Defy the marines and battle pirates!<br>
-        Create your own pirate crew!<br>
-        Get a high player bounty!
-      </div>
     </div>
-    
     <div class="vs-text">VS</div>
-    
-    <!-- Tarjeta Marina -->
     <div class="card card-marine" onclick="startGame('Marinas')">
-      <div class="card-img"></div>
+      <div class="card-header" style="background-image: url('https://tr.rbxcdn.com/180DAY-8f5b75f9c0e6c2f3a5c9455fb0b4f1a1/420/420/Image/Png/noFilter');"></div>
       <div class="card-title">MARINAS</div>
       <div class="card-stats">Honor: $2,510,531</div>
-      <div class="card-desc">
-        Team up on pirates!<br>
-        Faster, cheaper ships!<br>
-        Claim bounties!
-      </div>
     </div>
   </div>
 </div>
 
-<!-- HUD DE JUEGO -->
+<!-- JUEGO -->
 <div id="game-ui">
-  <!-- Top Bar -->
   <div class="top-bar">
     <div class="menu-btn">Menú</div>
-    <div class="hud-buttons">
-      <div>⚙️</div>
-      <div>💬</div>
-    </div>
   </div>
 
-  <!-- Info Jugador -->
   <div class="player-info">
     <div class="level-txt">Lv. 2752</div>
     <div class="xp-bar-bg">
@@ -240,290 +144,172 @@
     <div class="money-txt">$ 367,682</div>
   </div>
 
-  <!-- Notificación central -->
-  <div id="notification">Unido al equipo de &lt;Piratas&gt;.</div>
+  <div id="notification"></div>
 
-  <!-- Barras de Salud -->
   <div class="stats-container">
-    <div class="stat-bar health-bar">
+    <div class="stat-bar">
       <div class="health-fill" id="health-fill"></div>
-      <div class="stat-text">
-        <span class="stat-label">Salud</span>
-        <span id="health-val">13955/13955</span>
-      </div>
+      <div class="stat-text"><span>Salud</span><span id="health-val">13955/13955</span></div>
     </div>
-    <div class="stat-bar energy-bar">
+    <div class="stat-bar">
       <div class="energy-fill" id="energy-fill"></div>
-      <div class="stat-text">
-        <span class="stat-label">Energy</span>
-        <span id="energy-val">13955/13955</span>
-      </div>
+      <div class="stat-text"><span>Energy</span><span id="energy-val">13955/13955</span></div>
     </div>
   </div>
 
-  <!-- Habilidades -->
   <div class="skills-container">
-    <div class="skill-slot active"><div class="skill-icon" style="color:#00ffff;">✋</div></div>
-    <div class="skill-slot"><div class="skill-icon" style="color:#ff00ff; background:#000; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">☠️</div></div>
-    <div class="skill-slot"><div class="skill-icon" style="transform: rotate(-45deg);">🪄</div></div>
-    <div class="skill-slot"><div class="skill-icon">🪝</div></div>
-    <div class="skill-slot"><div class="skill-icon">➕</div></div>
+    <div class="skill-slot active" style="color:#00ffff;">✋</div>
+    <div class="skill-slot" style="color:#ff00ff;">☠️</div>
+    <div class="skill-slot">🪄</div>
+    <div class="skill-slot">🪝</div>
+    <div class="skill-slot">➕</div>
   </div>
 
-  <!-- Joystick y Salto -->
   <div class="joystick-area" id="joystick">
     <div class="joystick-knob" id="knob"></div>
   </div>
   <div class="jump-btn" id="jump-btn">▲</div>
 </div>
 
-<!-- Three.js clásico -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<!-- MUNDO 3D -->
+<div id="world">
+  <div id="camera">
+    <!-- Suelo -->
+    <div class="face ground"></div>
+    <div class="face path"></div>
+    
+    <!-- Construcciones generadas por JS -->
+    <div id="buildings"></div>
+    
+    <!-- Jugador -->
+    <div id="player">
+      <div class="part head"></div>
+      <div class="part hair"></div>
+      <div class="part cape"></div>
+      <div class="part torso"></div>
+      <div class="part leg leg-l" id="legL"></div>
+      <div class="part leg leg-r" id="legR"></div>
+      <div class="part arm arm-l" id="armL"></div>
+      <div class="part arm arm-r" id="armR"></div>
+    </div>
+  </div>
+</div>
 
 <script>
-let scene, camera, renderer, player, clock;
-let controls = { forward: 0, right: 0 };
-let isJumping = false;
-let playerVelY = 0;
+// ===== CONFIGURACIÓN DEL JUEGO =====
+const state = {
+  x: 0, z: 0, y: 0,
+  rotY: 0,
+  velY: 0,
+  isJumping: false,
+  camYaw: 0,
+  camPitch: 0.5,
+  camDist: 400, // Distancia de la cámara
+  speed: 8,
+  keys: { w: false, a: false, s: false, d: false },
+  joystick: { x: 0, y: 0 },
+  isPlaying: false
+};
 
-function boot() {
-  if (typeof THREE === 'undefined') { setTimeout(boot, 80); return; }
-  init3D();
-}
-boot();
+const camEl = document.getElementById('camera');
+const playerEl = document.getElementById('player');
+const legL = document.getElementById('legL');
+const legR = document.getElementById('legR');
+const armL = document.getElementById('armL');
+const armR = document.getElementById('armR');
 
-function init3D() {
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87CEEB); // Cielo azul brillante
-  scene.fog = new THREE.Fog(0x87CEEB, 30, 120);
-
-  camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 300);
+// ===== GENERAR CIUDAD (ESTILO BLOX FRUITS) =====
+function generateCity() {
+  const container = document.getElementById('buildings');
+  const colors = ['#ff9999', '#99ff99', '#9999ff', '#ffff99', '#ffcc99', '#ff99cc'];
   
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  document.body.appendChild(renderer.domElement);
-
-  // Luces
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-  scene.add(hemi);
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-  dirLight.position.set(20, 30, 10);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize.width = 1024;
-  dirLight.shadow.mapSize.height = 1024;
-  dirLight.shadow.camera.left = -50;
-  dirLight.shadow.camera.right = 50;
-  dirLight.shadow.camera.top = 50;
-  dirLight.shadow.camera.bottom = -50;
-  scene.add(dirLight);
-
-  // Entorno (Ciudad estilo Blox Fruits)
-  buildEnvironment();
-
-  // Jugador (Estilo Roblox)
-  buildPlayer();
-
-  // Cámara posición inicial
-  camera.position.set(0, 8, 15);
-
-  clock = new THREE.Clock();
-  animate();
-
-  // Eventos
-  window.addEventListener('resize', onWindowResize);
-  setupTouchControls();
-}
-
-function buildEnvironment() {
-  // Suelo
-  const floorGeo = new THREE.PlaneGeometry(200, 200);
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0x88cc88 }); // Hierba
-  const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  // Caminos
-  const pathGeo = new THREE.PlaneGeometry(200, 20);
-  const pathMat = new THREE.MeshStandardMaterial({ color: 0xd4b88a }); // Tierra
-  const path = new THREE.Mesh(pathGeo, pathMat);
-  path.rotation.x = -Math.PI / 2;
-  path.position.y = 0.01;
-  path.receiveShadow = true;
-  scene.add(path);
-
-  // Edificios de colores (estilo bloques)
-  const colors = [0xff9999, 0x99ff99, 0x9999ff, 0xffff99, 0xffcc99];
-  
-  for(let i=0; i<12; i++) {
-    const w = 5 + Math.random() * 8;
-    const h = 10 + Math.random() * 20;
-    const d = 5 + Math.random() * 8;
+  for(let i = 0; i < 30; i++) {
+    let bx = (Math.random() - 0.5) * 2000;
+    let bz = (Math.random() - 0.5) * 2000;
     
-    // Evitar el centro donde está el jugador
-    let x = (Math.random() - 0.5) * 80;
-    let z = (Math.random() - 0.5) * 80;
-    if (Math.abs(x) < 15 && Math.abs(z) < 15) {
-      x += x > 0 ? 20 : -20;
+    // Dejar el centro libre
+    if (Math.abs(bx) < 300 && Math.abs(bz) < 200) {
+      bx += bx > 0 ? 400 : -400;
     }
 
-    const bGeo = new THREE.BoxGeometry(w, h, d);
-    const bMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random()*colors.length)] });
-    const b = new THREE.Mesh(bGeo, bMat);
-    b.position.set(x, h/2, z);
-    b.castShadow = true;
-    b.receiveShadow = true;
-    scene.add(b);
-    
-    // Tejado
-    const rGeo = new THREE.ConeGeometry(w * 0.8, 4, 4);
-    const rMat = new THREE.MeshStandardMaterial({ color: 0x880000 });
-    const r = new THREE.Mesh(rGeo, rMat);
-    r.position.set(x, h + 2, z);
-    r.rotation.y = Math.PI / 4;
-    r.castShadow = true;
-    scene.add(r);
-  }
+    let bw = 100 + Math.random() * 150;
+    let bh = 150 + Math.random() * 250;
+    let bd = 100 + Math.random() * 150;
+    let color = colors[Math.floor(Math.random() * colors.length)];
 
-  // Árboles
-  for(let i=0; i<20; i++) {
-    const tree = new THREE.Group();
-    const tGeo = new THREE.CylinderGeometry(0.5, 0.7, 4);
-    const tMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
-    const trunk = new THREE.Mesh(tGeo, tMat);
-    trunk.position.y = 2;
-    trunk.castShadow = true;
-    tree.add(trunk);
-    
-    const lGeo = new THREE.SphereGeometry(2.5);
-    const lMat = new THREE.MeshStandardMaterial({ color: 0x2d7a2d });
-    const leaves = new THREE.Mesh(lGeo, lMat);
-    leaves.position.y = 4.5;
-    leaves.castShadow = true;
-    tree.add(leaves);
-    
-    let x = (Math.random() - 0.5) * 100;
-    let z = (Math.random() - 0.5) * 100;
-    if (Math.abs(x) < 10 && Math.abs(z) < 10) continue; // No en el spawn
-    
-    tree.position.set(x, 0, z);
-    scene.add(tree);
+    const b = document.createElement('div');
+    b.className = 'building';
+    b.style.left = bx + 'px';
+    b.style.top = bz + 'px';
+    b.style.transformStyle = 'preserve-3d';
+
+    // Caras del edificio (Frontal, Trasera, Izq, Der, Techo)
+    const faces = [
+      { w: bw, h: bh, t: `translateZ(${bd/2}px)`, bg: color, l: -bw/2, tp: -bh, br: '1px solid #000' },
+      { w: bw, h: bh, t: `rotateY(180deg) translateZ(${bd/2}px)`, bg: color, l: -bw/2, tp: -bh, br: '1px solid #000' },
+      { w: bd, h: bh, t: `rotateY(-90deg) translateZ(${bw/2}px)`, bg: color, l: -bd/2, tp: -bh, br: '1px solid #000' },
+      { w: bd, h: bh, t: `rotateY(90deg) translateZ(${bw/2}px)`, bg: color, l: -bd/2, tp: -bh, br: '1px solid #000' },
+      { w: bw, h: bd, t: `rotateX(90deg) translateZ(${bh/2}px)`, bg: '#880000', l: -bw/2, tp: -bd/2, br: '1px solid #000' }
+    ];
+
+    faces.forEach(f => {
+      const face = document.createElement('div');
+      face.className = 'b-face';
+      face.style.width = f.w + 'px';
+      face.style.height = f.h + 'px';
+      face.style.left = (f.l || -f.w/2) + 'px';
+      face.style.top = (f.tp || -f.h/2) + 'px';
+      face.style.transform = f.t;
+      face.style.background = f.bg;
+      face.style.border = f.br;
+      // Simular sombra interior
+      face.style.boxShadow = 'inset 0 0 50px rgba(0,0,0,0.3)';
+      b.appendChild(face);
+    });
+
+    container.appendChild(b);
   }
 }
+generateCity();
 
-let playerParts = {};
-
-function buildPlayer() {
-  player = new THREE.Group();
-  
-  // Cuerpo (Camisa verde neón)
-  const torsoGeo = new THREE.BoxGeometry(1.5, 2, 0.8);
-  const torsoMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 }); // Verde
-  const torso = new THREE.Mesh(torsoGeo, torsoMat);
-  torso.position.y = 2;
-  torso.castShadow = true;
-  player.add(torso);
-
-  // Cabeza
-  const headGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
-  const headMat = new THREE.MeshStandardMaterial({ color: 0xffcc99 });
-  const head = new THREE.Mesh(headGeo, headMat);
-  head.position.y = 3.8;
-  head.castShadow = true;
-  player.add(head);
-
-  // Pelo (Cubriendo la cara)
-  const hairGeo = new THREE.BoxGeometry(1.25, 0.5, 1.25);
-  const hairMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-  const hair = new THREE.Mesh(hairGeo, hairMat);
-  hair.position.y = 4.2;
-  hair.position.z = 0.05;
-  player.add(hair);
-
-  // Capa de piel (Blanca alrededor del cuello)
-  const capeGeo = new THREE.CylinderGeometry(1, 1.2, 0.8, 8);
-  const capeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-  const cape = new THREE.Mesh(capeGeo, capeMat);
-  cape.position.y = 2.8;
-  cape.castShadow = true;
-  player.add(cape);
-
-  // Piernas
-  const legGeo = new THREE.BoxGeometry(0.6, 1.8, 0.6);
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-  
-  const legL = new THREE.Mesh(legGeo, legMat);
-  legL.position.set(-0.4, 0.9, 0);
-  legL.castShadow = true;
-  player.add(legL);
-  
-  const legR = new THREE.Mesh(legGeo, legMat);
-  legR.position.set(0.4, 0.9, 0);
-  legR.castShadow = true;
-  player.add(legR);
-
-  // Brazos
-  const armGeo = new THREE.BoxGeometry(0.5, 1.8, 0.5);
-  const armMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  
-  const armL = new THREE.Mesh(armGeo, armMat);
-  armL.position.set(-1.1, 2, 0);
-  armL.castShadow = true;
-  player.add(armL);
-  
-  const armR = new THREE.Mesh(armGeo, armMat);
-  armR.position.set(1.1, 2, 0);
-  armR.castShadow = true;
-  player.add(armR);
-
-  playerParts = { legL, legR, armL, armR, torso };
-  
-  scene.add(player);
-}
-
-function onWindowResize() {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-}
-
-// ===== LÓGICA DE CONTROLES TÁCTILES =====
+// ===== LÓGICA DE CONTROLES =====
 const joystick = document.getElementById('joystick');
 const knob = document.getElementById('knob');
 const jumpBtn = document.getElementById('jump-btn');
 let joystickActive = false;
 let joystickCenter = { x: 0, y: 0 };
-const maxDist = 40;
+const maxDist = 35;
 
-function setupTouchControls() {
-  joystick.addEventListener('touchstart', handleJoystickStart);
-  joystick.addEventListener('touchmove', handleJoystickMove);
-  joystick.addEventListener('touchend', handleJoystickEnd);
-  joystick.addEventListener('mousedown', handleJoystickStart);
-  document.addEventListener('mousemove', handleJoystickMove);
-  document.addEventListener('mouseup', handleJoystickEnd);
+// Teclado
+document.addEventListener('keydown', e => {
+  if (e.key.toLowerCase() === 'w') state.keys.w = true;
+  if (e.key.toLowerCase() === 'a') state.keys.a = true;
+  if (e.key.toLowerCase() === 's') state.keys.s = true;
+  if (e.key.toLowerCase() === 'd') state.keys.d = true;
+});
+document.addEventListener('keyup', e => {
+  if (e.key.toLowerCase() === 'w') state.keys.w = false;
+  if (e.key.toLowerCase() === 'a') state.keys.a = false;
+  if (e.key.toLowerCase() === 's') state.keys.s = false;
+  if (e.key.toLowerCase() === 'd') state.keys.d = false;
+});
 
-  jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); doJump(); });
-  jumpBtn.addEventListener('mousedown', doJump);
-}
-
+// Joystick Táctil / Ratón
 function handleJoystickStart(e) {
   joystickActive = true;
   const rect = joystick.getBoundingClientRect();
   joystickCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+  if (e.type === 'touchstart') e.preventDefault();
 }
-
 function handleJoystickMove(e) {
   if (!joystickActive) return;
-  e.preventDefault();
+  if (e.type === 'touchmove') e.preventDefault();
   
-  let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  let cx = e.touches ? e.touches[0].clientX : e.clientX;
+  let cy = e.touches ? e.touches[0].clientY : e.clientY;
 
-  let dx = clientX - joystickCenter.x;
-  let dy = clientY - joystickCenter.y;
+  let dx = cx - joystickCenter.x;
+  let dy = cy - joystickCenter.y;
   const dist = Math.hypot(dx, dy);
   
   if (dist > maxDist) {
@@ -533,128 +319,167 @@ function handleJoystickMove(e) {
   
   knob.style.transform = `translate(${dx}px, ${dy}px)`;
   
-  // Normalizar para el movimiento (Y invertida para pantalla)
-  controls.right = dx / maxDist;
-  controls.forward = -dy / maxDist;
+  state.joystick.x = dx / maxDist;
+  state.joystick.y = -dy / maxDist;
 }
-
 function handleJoystickEnd() {
   joystickActive = false;
   knob.style.transform = `translate(0px, 0px)`;
-  controls.right = 0;
-  controls.forward = 0;
+  state.joystick.x = 0;
+  state.joystick.y = 0;
 }
 
+joystick.addEventListener('mousedown', handleJoystickStart);
+document.addEventListener('mousemove', handleJoystickMove);
+document.addEventListener('mouseup', handleJoystickEnd);
+joystick.addEventListener('touchstart', handleJoystickStart, {passive: false});
+document.addEventListener('touchmove', handleJoystickMove, {passive: false});
+document.addEventListener('touchend', handleJoystickEnd);
+
+// Salto
 function doJump() {
-  if (!isJumping) {
-    playerVelY = 10;
-    isJumping = true;
+  if (!state.isJumping) {
+    state.velY = 12;
+    state.isJumping = true;
   }
 }
+jumpBtn.addEventListener('mousedown', doJump);
+jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); doJump(); }, {passive: false});
 
-// ===== GAME LOOP =====
-let camYaw = 0;
+// Rotar cámara arrastrando el fondo (Ratón)
+let isDraggingCam = false;
+let lastMouseX = 0;
+document.getElementById('world').addEventListener('mousedown', (e) => {
+  if (e.target.id === 'world' || e.target.id === 'camera') {
+    isDraggingCam = true;
+    lastMouseX = e.clientX;
+  }
+});
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingCam) {
+    const deltaX = e.clientX - lastMouseX;
+    state.camYaw -= deltaX * 0.01;
+    lastMouseX = e.clientX;
+  }
+});
+document.addEventListener('mouseup', () => { isDraggingCam = false; });
 
-function animate() {
-  requestAnimationFrame(animate);
+// ===== BUCLE DE ANIMACIÓN =====
+let lastTime = performance.now();
+
+function gameLoop(time) {
+  requestAnimationFrame(gameLoop);
+  if (!state.isPlaying) return;
+
+  const dt = Math.min((time - lastTime) / 1000, 0.1);
+  lastTime = time;
+
+  // Movimiento
+  let moveX = 0, moveZ = 0;
+  if (state.keys.w) moveZ += 1;
+  if (state.keys.s) moveZ -= 1;
+  if (state.keys.a) moveX -= 1;
+  if (state.keys.d) moveX += 1;
   
-  if (!clock || !player) return;
-  const dt = Math.min(clock.getDelta(), 0.1);
+  moveX += state.joystick.x;
+  moveZ += state.joystick.y;
 
-  // Movimiento del jugador
-  const speed = 8;
-  const moveZ = controls.forward;
-  const moveX = controls.right;
+  let isMoving = false;
 
-  if (moveZ !== 0 || moveX !== 0) {
-    // Calcular rotación del jugador basado en dirección
-    const targetRot = Math.atan2(moveX, moveZ);
-    let diff = targetRot - player.rotation.y;
+  if (Math.abs(moveX) > 0.1 || Math.abs(moveZ) > 0.1) {
+    isMoving = true;
+    
+    // Calcular ángulo de movimiento relativo a la cámara
+    const angle = Math.atan2(moveX, moveZ);
+    const targetRot = angle + state.camYaw;
+    
+    // Suavizar rotación
+    let diff = targetRot - state.rotY;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
-    player.rotation.y += diff * dt * 10;
+    state.rotY += diff * dt * 10;
 
     // Mover
-    player.position.x += moveX * speed * dt;
-    player.position.z += moveZ * speed * dt;
-
-    // Animación de caminar
-    const walkTime = clock.getElapsedTime() * 10;
-    const swing = Math.sin(walkTime) * 0.5;
-    if(playerParts.legL) playerParts.legL.rotation.x = swing;
-    if(playerParts.legR) playerParts.legR.rotation.x = -swing;
-    if(playerParts.armL) playerParts.armL.rotation.x = -swing;
-    if(playerParts.armR) playerParts.armR.rotation.x = swing;
-  } else {
-    // Idle
-    if(playerParts.legL) playerParts.legL.rotation.x *= 0.8;
-    if(playerParts.legR) playerParts.legR.rotation.x *= 0.8;
-    if(playerParts.armL) playerParts.armL.rotation.x *= 0.8;
-    if(playerParts.armR) playerParts.armR.rotation.x *= 0.8;
+    const len = Math.hypot(moveX, moveZ);
+    const speed = state.speed * Math.min(len, 1);
+    state.x += Math.sin(state.rotY) * speed * dt;
+    state.z += Math.cos(state.rotY) * speed * dt;
   }
 
   // Física de salto
-  if (isJumping) {
-    playerVelY -= 30 * dt;
-    player.position.y += playerVelY * dt;
-    if (player.position.y <= 0) {
-      player.position.y = 0;
-      isJumping = false;
-      playerVelY = 0;
+  if (state.isJumping) {
+    state.velY -= 35 * dt;
+    state.y += state.velY * dt;
+    if (state.y <= 0) {
+      state.y = 0;
+      state.isJumping = false;
+      state.velY = 0;
     }
   }
 
-  // Cámara (Tercera persona, estilo Blox Fruits)
-  // La cámara sigue al jugador con un offset
-  const camDist = 12;
-  const camHeight = 6;
-  
-  const idealX = player.position.x + Math.sin(camYaw) * camDist;
-  const idealZ = player.position.z + Math.cos(camYaw) * camDist;
-  const idealY = player.position.y + camHeight;
-
-  camera.position.x += (idealX - camera.position.x) * dt * 5;
-  camera.position.y += (idealY - camera.position.y) * dt * 5;
-  camera.position.z += (idealZ - camera.position.z) * dt * 5;
-
-  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
-
-  // Animar HUD (simular que hace cosas)
-  if (Math.random() < 0.01) {
-    const energyFill = document.getElementById('energy-fill');
-    const val = 50 + Math.random() * 50;
-    energyFill.style.width = val + '%';
+  // Animación del personaje (Caminar)
+  if (isMoving) {
+    const walkTime = time * 0.015;
+    const swing = Math.sin(walkTime) * 35;
+    legL.style.transform = `rotateX(${swing}deg)`;
+    legR.style.transform = `rotateX(${-swing}deg)`;
+    armL.style.transform = `rotateX(${-swing}deg)`;
+    armR.style.transform = `rotateX(${swing}deg)`;
+  } else {
+    legL.style.transform = `rotateX(0deg)`;
+    legR.style.transform = `rotateX(0deg)`;
+    armL.style.transform = `rotateX(0deg)`;
+    armR.style.transform = `rotateX(0deg)`;
   }
 
-  renderer.render(scene, camera);
+  // Actualizar transformaciones 3D
+  // El suelo está en y=0, el jugador "flota" a y+30 para que los pies toquen el suelo
+  const py = -state.y - 30;
+  playerEl.style.transform = `translate3d(${state.x}px, ${py}px, ${state.z}px) rotateY(${state.rotY}rad)`;
+  
+  // Cámara sigue al jugador
+  const camX = state.x - Math.sin(state.camYaw) * state.camDist;
+  const camZ = state.z - Math.cos(state.camYaw) * state.camDist;
+  const camY = -300 - state.y + (state.camPitch * 300);
+  
+  camEl.style.transform = `translate3d(${-camX}px, ${camY}px, ${-camZ}px) rotateX(${state.camPitch * 60}deg) rotateY(${state.camYaw}rad)`;
 }
 
-// ===== INICIO DEL JUEGO =====
+requestAnimationFrame(gameLoop);
+
+// ===== INICIAR JUEGO =====
 function startGame(faction) {
-  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('menu-screen').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('menu-screen').style.display = 'none';
+  }, 500);
+  
   document.getElementById('game-ui').style.display = 'block';
   
-  // Mostrar notificación
   const notif = document.getElementById('notification');
   notif.innerHTML = `Unido al equipo de &lt;${faction}&gt;.`;
   notif.style.opacity = '1';
-  setTimeout(() => { notif.style.opacity = '0'; }, 3000);
+  setTimeout(() => notif.style.opacity = '0', 3000);
   
-  // Iniciar el clock
-  clock = new THREE.Clock();
-}
+  state.isPlaying = true;
+  lastTime = performance.now();
 
-// Efecto de clic
-document.addEventListener('click', () => {
-  if (document.getElementById('game-ui').style.display === 'block' && !document.pointerLockElement) {
-    // Simular usar habilidad
-    const activeSkill = document.querySelector('.skill-slot.active');
-    if (activeSkill) {
-      activeSkill.style.transform = 'scale(0.9)';
-      setTimeout(() => activeSkill.style.transform = 'scale(1)', 100);
-    }
-  }
-});
+  // Simular pérdida de energía/daño visual
+  setInterval(() => {
+    if (!state.isPlaying) return;
+    const hFill = document.getElementById('health-fill');
+    const eFill = document.getElementById('energy-fill');
+    const hVal = document.getElementById('health-val');
+    
+    const hp = 13500 + Math.random() * 455;
+    hFill.style.width = (hp / 13955 * 100) + '%';
+    hVal.innerText = `${Math.floor(hp)}/13955`;
+    
+    const en = 10000 + Math.random() * 3955;
+    eFill.style.width = (en / 13955 * 100) + '%';
+    document.getElementById('energy-val').innerText = `${Math.floor(en)}/13955`;
+  }, 2000);
+}
 </script>
 </body>
 </html>
